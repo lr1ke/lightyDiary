@@ -5,15 +5,16 @@ import '../styles/EntryForm.css';
 
 const EntryForm = () => {
     const [content, setContent] = useState('');
+    const [title, setTitle] = useState('');
     const [contract, setContract] = useState(null);
     const [myEntries, setMyEntries] = useState([]);
     const [allEntries, setAllEntries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [entryCount, setEntryCount] = useState(0);
     const [isCollaborative, setIsCollaborative] = useState(false);
-    const [contributorAddress, setContributorAddress] = useState('');
     const [contributionContent, setContributionContent] = useState('');
     const [entryContributions, setEntryContributions] = useState({});
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const initContract = async () => {
@@ -24,7 +25,7 @@ const EntryForm = () => {
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 const signer = await provider.getSigner();
                 
-                const contractAddress = '0x5fbdb2315678afecb367f032d93f642f64180aa3';
+                const contractAddress = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
                 console.log('Contract address:', contractAddress);
                 
                 const contractInstance = new ethers.Contract(
@@ -73,6 +74,7 @@ const EntryForm = () => {
             const formatEntries = (entries) => 
                 entries.map(entry => ({
                     id: Number(entry.id),
+                    title: entry.title,
                     content: entry.content,
                     owner: entry.owner,
                     timestamp: Number(entry.timestamp),
@@ -136,35 +138,25 @@ const EntryForm = () => {
         e.preventDefault();
         try {
             if (!contract || !content.trim()) return;
+            if (isCollaborative && !title.trim()) return;
 
             setLoading(true);
             let tx;
             
             if (isCollaborative) {
-                tx = await contract.createCollaborativeEntry(content);
+                tx = await contract.createCollaborativeEntry(title, content);
             } else {
                 tx = await contract.createEntry(content);
             }
 
             await tx.wait();
             setContent('');
+            setTitle('');
             await loadEntries(contract);
         } catch (error) {
             console.error('Error creating entry:', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const addContributor = async (entryId) => {
-        try {
-            if (!contract || !contributorAddress) return;
-            const tx = await contract.addContributor(entryId, contributorAddress);
-            await tx.wait();
-            await loadEntries(contract);
-            setContributorAddress('');
-        } catch (error) {
-            console.error('Error adding contributor:', error);
         }
     };
 
@@ -211,12 +203,46 @@ const EntryForm = () => {
 
     const finalizeEntry = async (entryId) => {
         try {
-            if (!contract) return;
+            if (!contract) {
+                setError('Contract not initialized');
+                return;
+            }
+    
+            setLoading(true);
+            console.log('Starting finalize process for entry:', entryId);
+            
+            // Check if user is the owner
+            const entry = allEntries.find(e => e.id === entryId);
+            if (!entry) {
+                setError('Entry not found');
+                return;
+            }
+            
+            console.log('Current user:', window.ethereum.selectedAddress);
+            console.log('Entry owner:', entry.owner);
+            
+            if (entry.owner.toLowerCase() !== window.ethereum.selectedAddress.toLowerCase()) {
+                setError('Only the owner can finalize this entry');
+                return;
+            }
+    
+            console.log('Calling contract.finalizeEntry...');
             const tx = await contract.finalizeEntry(entryId);
+            console.log('Transaction sent:', tx);
+            
+            console.log('Waiting for confirmation...');
             await tx.wait();
+            console.log('Entry finalized successfully');
+            
+            // Reload entries to show updated state
             await loadEntries(contract);
+            
+            setError(''); // Clear any previous errors
         } catch (error) {
             console.error('Error finalizing entry:', error);
+            setError(error.message || 'Failed to finalize entry');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -250,6 +276,17 @@ const EntryForm = () => {
                     </label>
                 </div>
 
+                {isCollaborative && (
+                    <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Enter theme/title for collaboration..."
+                        className="title-input"
+                        required
+                    />
+                )}
+
                 <textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -257,7 +294,7 @@ const EntryForm = () => {
                     required
                 />
                 
-                <button type="submit" disabled={loading || !content.trim()}>
+                <button type="submit" disabled={loading || !content.trim() || (isCollaborative && !title.trim())}>
                     {isCollaborative ? "Create Collaborative Entry" : "Create Entry"}
                 </button>
             </form>
@@ -272,9 +309,12 @@ const EntryForm = () => {
                     return (
                         <div key={entry.id} className={`entry ${entry.isCollaborative ? 'collaborative' : ''}`}>
                             <div className="entry-header">
-                                <span className="entry-type-tag">
-                                    {entry.isCollaborative ? '👥 Collaborative' : '📝 Regular'}
-                                </span>
+                                <div className="entry-title">
+                                    <span className="entry-type-tag">
+                                        {entry.isCollaborative ? '👥 Collaborative' : '📝 Regular'}
+                                    </span>
+                                    {entry.isCollaborative && <h3>{entry.title}</h3>}
+                                </div>
                                 <span className="entry-status">
                                     {entry.isCollaborative && (entry.isFinalized ? '✅ Finalized' : '🔓 Open for contributions')}
                                 </span>
@@ -282,19 +322,16 @@ const EntryForm = () => {
                             <p className="entry-content">{entry.content}</p>
                             <small>Created: {date.toLocaleString()}</small>
                             
-                            {entry.isCollaborative && !entry.isFinalized && entry.owner === window.ethereum.selectedAddress && (
-                                <div className="contributor-section">
-                                    <input
-                                        type="text"
-                                        placeholder="Contributor address"
-                                        value={contributorAddress}
-                                        onChange={(e) => setContributorAddress(e.target.value)}
-                                    />
-                                    <button onClick={() => addContributor(entry.id)}>
-                                        Add Contributor
-                                    </button>
-                                    <button onClick={() => finalizeEntry(entry.id)}>
-                                        Finalize Entry
+                            {entry.isCollaborative && 
+                             !entry.isFinalized && 
+                             entry.owner.toLowerCase() === window.ethereum.selectedAddress.toLowerCase() && (
+                                <div className="entry-actions">
+                                    <button 
+                                        onClick={() => finalizeEntry(entry.id)}
+                                        className="finalize-button"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Finalizing...' : 'Finalize Entry'}
                                     </button>
                                 </div>
                             )}
@@ -314,9 +351,12 @@ const EntryForm = () => {
                     return (
                         <div key={entry.id} className={`entry ${entry.isCollaborative ? 'collaborative' : ''}`}>
                             <div className="entry-header">
-                                <span className="entry-type-tag">
-                                    {entry.isCollaborative ? '👥 Collaborative' : '📝 Regular'}
-                                </span>
+                                <div className="entry-title">
+                                    <span className="entry-type-tag">
+                                        {entry.isCollaborative ? '👥 Collaborative' : '📝 Regular'}
+                                    </span>
+                                    {entry.isCollaborative && <h3>{entry.title}</h3>}
+                                </div>
                                 <span className="entry-status">
                                     {entry.isCollaborative && (entry.isFinalized ? '✅ Finalized' : '🔓 Open for contributions')}
                                 </span>
@@ -325,6 +365,20 @@ const EntryForm = () => {
                             <small>Created by: {entry.owner}</small>
                             <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
                             
+                            {entry.isCollaborative && 
+                             !entry.isFinalized && 
+                             entry.owner.toLowerCase() === window.ethereum.selectedAddress.toLowerCase() && (
+                                <div className="entry-actions">
+                                    <button 
+                                        onClick={() => finalizeEntry(entry.id)}
+                                        className="finalize-button"
+                                        disabled={loading}
+                                    >
+                                        {loading ? 'Finalizing...' : 'Finalize Entry'}
+                                    </button>
+                                </div>
+                            )}
+
                             {entry.isCollaborative && (
                                 <div className="contributions-list">
                                     <h4>Contributions ({entryContributions[entry.id]?.length || 0})</h4>
@@ -360,6 +414,7 @@ const EntryForm = () => {
                     );
                 })}
             </div>
+            {error && <div className="error-message">{error}</div>}
         </div>
     );
 };

@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 contract DiaryContract {
     struct Entry {
         uint256 id;
+        string title;
         string content;
         address owner;
         uint256 timestamp;
         bool isCollaborative;
-        address[] contributors;
         bool isFinalized;
     }
 
@@ -21,7 +21,6 @@ contract DiaryContract {
     Entry[] public entries;
     mapping(address => uint256[]) public userEntries;
     mapping(uint256 => Contribution[]) public entryContributions;
-    mapping(uint256 => mapping(address => bool)) public isContributor;
     uint256 public entryCount;
 
     event EntryCreated(uint256 indexed entryId, address indexed owner, string content, bool isCollaborative);
@@ -29,59 +28,42 @@ contract DiaryContract {
     event EntryFinalized(uint256 indexed entryId);
 
     function createEntry(string memory content) public {
-        uint256 newEntryId = entryCount;
-        address[] memory emptyContributors = new address[](0);
-        
         entries.push(Entry({
-            id: newEntryId,
+            id: entryCount,
+            title: "",
             content: content,
             owner: msg.sender,
             timestamp: block.timestamp,
             isCollaborative: false,
-            contributors: emptyContributors,
             isFinalized: true
         }));
         
-        userEntries[msg.sender].push(newEntryId);
+        userEntries[msg.sender].push(entryCount);
         entryCount++;
         
-        emit EntryCreated(newEntryId, msg.sender, content, false);
+        emit EntryCreated(entryCount - 1, msg.sender, content, false);
     }
 
-    function createCollaborativeEntry(string memory initialContent) public {
-        uint256 newEntryId = entryCount;
-        address[] memory initialContributors = new address[](1);
-        initialContributors[0] = msg.sender;
-
+    function createCollaborativeEntry(string memory _title, string memory _content) public {
         entries.push(Entry({
-            id: newEntryId,
-            content: initialContent,
+            id: entryCount,
+            title: _title,
+            content: _content,
             owner: msg.sender,
             timestamp: block.timestamp,
             isCollaborative: true,
-            contributors: initialContributors,
             isFinalized: false
         }));
 
-        userEntries[msg.sender].push(newEntryId);
-        isContributor[newEntryId][msg.sender] = true;
+        userEntries[msg.sender].push(entryCount);
         entryCount++;
 
-        emit EntryCreated(newEntryId, msg.sender, initialContent, true);
-    }
-
-    function addContributor(uint256 entryId, address contributor) public {
-        require(msg.sender == entries[entryId].owner, "Only owner can add contributors");
-        require(!entries[entryId].isFinalized, "Entry is finalized");
-        require(!isContributor[entryId][contributor], "Already a contributor");
-
-        isContributor[entryId][contributor] = true;
-        entries[entryId].contributors.push(contributor);
+        emit EntryCreated(entryCount - 1, msg.sender, _content, true);
     }
 
     function addContribution(uint256 entryId, string memory content) public {
-        require(isContributor[entryId][msg.sender], "Not authorized to contribute");
         require(!entries[entryId].isFinalized, "Entry is finalized");
+        require(entries[entryId].isCollaborative, "Not a collaborative entry");
 
         Contribution memory newContribution = Contribution({
             contributor: msg.sender,

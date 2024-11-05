@@ -129,3 +129,62 @@ small {
     cursor: not-allowed;
 }
 
+.error-message {
+    background: #fff2f2;
+    color: #d63031;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+    border: 1px solid #fab1a0;
+}
+
+.title-input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.entry-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.entry-title h3 {
+    margin: 0;
+    color: #0070f3;
+    font-size: 1.2em;
+}
+
+.entry-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.finalize-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.finalize-button:hover:not(:disabled) {
+    background-color: #218838;
+}
+
+.finalize-button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
