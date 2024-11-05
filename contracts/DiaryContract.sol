@@ -10,12 +10,14 @@ contract DiaryContract {
         uint256 timestamp;
         bool isCollaborative;
         bool isFinalized;
+        string location;
     }
 
     struct Contribution {
         address contributor;
         string content;
         uint256 timestamp;
+        string location;
     }
 
     Entry[] public entries;
@@ -27,7 +29,7 @@ contract DiaryContract {
     event ContributionAdded(uint256 indexed entryId, address indexed contributor, string content);
     event EntryFinalized(uint256 indexed entryId);
 
-    function createEntry(string memory content) public {
+    function createEntry(string memory content, string memory location) public {
         entries.push(Entry({
             id: entryCount,
             title: "",
@@ -35,7 +37,8 @@ contract DiaryContract {
             owner: msg.sender,
             timestamp: block.timestamp,
             isCollaborative: false,
-            isFinalized: true
+            isFinalized: true,
+            location: location
         }));
         
         userEntries[msg.sender].push(entryCount);
@@ -44,7 +47,7 @@ contract DiaryContract {
         emit EntryCreated(entryCount - 1, msg.sender, content, false);
     }
 
-    function createCollaborativeEntry(string memory _title, string memory _content) public {
+    function createCollaborativeEntry(string memory _title, string memory _content, string memory location) public {
         entries.push(Entry({
             id: entryCount,
             title: _title,
@@ -52,7 +55,8 @@ contract DiaryContract {
             owner: msg.sender,
             timestamp: block.timestamp,
             isCollaborative: true,
-            isFinalized: false
+            isFinalized: false,
+            location: location
         }));
 
         userEntries[msg.sender].push(entryCount);
@@ -61,14 +65,15 @@ contract DiaryContract {
         emit EntryCreated(entryCount - 1, msg.sender, _content, true);
     }
 
-    function addContribution(uint256 entryId, string memory content) public {
+    function addContribution(uint256 entryId, string memory content, string memory location) public {
         require(!entries[entryId].isFinalized, "Entry is finalized");
         require(entries[entryId].isCollaborative, "Not a collaborative entry");
 
         Contribution memory newContribution = Contribution({
             contributor: msg.sender,
             content: content,
-            timestamp: block.timestamp
+            timestamp: block.timestamp,
+            location: location
         });
 
         entryContributions[entryId].push(newContribution);

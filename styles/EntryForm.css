@@ -188,3 +188,35 @@ small {
     cursor: not-allowed;
 }
 
+.entry-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.entry-metadata small {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.entry-metadata small:has(+ small) {
+    margin-bottom: 2px;
+}
+
+.entry-metadata {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.entry-location {
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+

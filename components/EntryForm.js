@@ -15,6 +15,8 @@ const EntryForm = () => {
     const [contributionContent, setContributionContent] = useState('');
     const [entryContributions, setEntryContributions] = useState({});
     const [error, setError] = useState('');
+    const [location, setLocation] = useState('');
+    const [locationError, setLocationError] = useState('');
 
     useEffect(() => {
         const initContract = async () => {
@@ -79,11 +81,13 @@ const EntryForm = () => {
                     owner: entry.owner,
                     timestamp: Number(entry.timestamp),
                     isCollaborative: entry.isCollaborative,
-                    isFinalized: entry.isFinalized
+                    isFinalized: entry.isFinalized,
+                    location: entry.location
                 }))
                 .sort((a, b) => b.id - a.id);
 
             const formattedEntries = formatEntries(allEntriesResult);
+            console.log('Formatted entries with location:', formattedEntries);
             setMyEntries(formatEntries(myEntriesResult));
             setAllEntries(formattedEntries);
             
@@ -134,6 +138,44 @@ const EntryForm = () => {
         }
     };
 
+    const getLocation = () => {
+        if (!navigator.geolocation) {
+            setLocationError('Geolocation is not supported by your browser');
+            return;
+        }
+
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    try {
+                        const { latitude, longitude } = position.coords;
+                        console.log('Got coordinates:', { latitude, longitude });
+                        
+                        // Use reverse geocoding to get readable address
+                        const response = await fetch(
+                            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+                        );
+                        const data = await response.json();
+                        console.log('Location data:', data);
+                        
+                        const locationString = data.display_name || `${latitude}, ${longitude}`;
+                        console.log('Final location string:', locationString);
+                        setLocation(locationString);
+                        resolve(locationString);
+                    } catch (error) {
+                        console.error('Error getting location:', error);
+                        reject(error);
+                    }
+                },
+                (error) => {
+                    console.error('Geolocation error:', error);
+                    setLocationError('Unable to retrieve your location');
+                    reject(error);
+                }
+            );
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -141,20 +183,25 @@ const EntryForm = () => {
             if (isCollaborative && !title.trim()) return;
 
             setLoading(true);
-            let tx;
             
+            // Get location before creating entry
+            const locationString = await getLocation();
+            
+            let tx;
             if (isCollaborative) {
-                tx = await contract.createCollaborativeEntry(title, content);
+                tx = await contract.createCollaborativeEntry(title, content, locationString);
             } else {
-                tx = await contract.createEntry(content);
+                tx = await contract.createEntry(content, locationString);
             }
 
             await tx.wait();
             setContent('');
             setTitle('');
+            setLocation('');
             await loadEntries(contract);
         } catch (error) {
             console.error('Error creating entry:', error);
+            setError(error.message);
         } finally {
             setLoading(false);
         }
@@ -162,41 +209,22 @@ const EntryForm = () => {
 
     const addContribution = async (entryId, contribution) => {
         try {
-            console.log('Starting contribution process:', {
-                entryId,
-                contribution,
-                contractExists: !!contract
-            });
-            
-            if (!contract || !contribution.trim()) {
-                console.log('Contract or contribution missing');
-                return;
-            }
+            if (!contract || !contribution.trim()) return;
             
             setLoading(true);
-            console.log('Calling contract.addContribution...');
-            const tx = await contract.addContribution(entryId, contribution);
-            console.log('Transaction created:', tx);
             
-            console.log('Waiting for transaction confirmation...');
-            const receipt = await tx.wait();
-            console.log('Transaction confirmed:', receipt);
+            // Get location before adding contribution
+            const locationString = await getLocation();
             
-            // Clear the contribution input
+            const tx = await contract.addContribution(entryId, contribution, locationString);
+            await tx.wait();
+            
             setContributionContent('');
-            
-            console.log('Reloading entries and contributions...');
             await loadEntries(contract);
-            
-            setLoading(false);
-            console.log('Contribution process completed');
         } catch (error) {
-            console.error('Error in addContribution:', error);
-            console.error('Error details:', {
-                message: error.message,
-                code: error.code,
-                data: error.data
-            });
+            console.error('Error adding contribution:', error);
+            setError(error.message);
+        } finally {
             setLoading(false);
         }
     };
@@ -320,7 +348,15 @@ const EntryForm = () => {
                                 </span>
                             </div>
                             <p className="entry-content">{entry.content}</p>
-                            <small>Created: {date.toLocaleString()}</small>
+                            <div className="entry-metadata">
+                                <small>Created by: {entry.owner}</small>
+                                <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
+                                {entry.location && (
+                                    <small className="entry-location">
+                                        📍 Location: {entry.location}
+                                    </small>
+                                )}
+                            </div>
                             
                             {entry.isCollaborative && 
                              !entry.isFinalized && 
@@ -362,8 +398,15 @@ const EntryForm = () => {
                                 </span>
                             </div>
                             <p className="entry-content">{entry.content}</p>
-                            <small>Created by: {entry.owner}</small>
-                            <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
+                            <div className="entry-metadata">
+                                <small>Created by: {entry.owner}</small>
+                                <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
+                                {entry.location && (
+                                    <small className="entry-location">
+                                        📍 Location: {entry.location}
+                                    </small>
+                                )}
+                            </div>
                             
                             {entry.isCollaborative && 
                              !entry.isFinalized && 
