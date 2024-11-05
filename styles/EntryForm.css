@@ -1,0 +1,131 @@
+.entry {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.entry.collaborative {
+    border-left: 4px solid #0070f3;
+}
+
+.entry-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.entry-type-tag {
+    background: #f0f0f0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.entry-status {
+    color: #666;
+    font-size: 14px;
+}
+
+.entry-content {
+    margin: 15px 0;
+    line-height: 1.6;
+}
+
+.contributor-section, .contribution-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.contributor-section input, .contribution-section textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.contributor-section button, .contribution-section button {
+    background: #0070f3;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.contributor-section button:hover, .contribution-section button:hover {
+    background: #0051a2;
+}
+
+small {
+    display: block;
+    color: #666;
+    margin-top: 5px;
+}
+
+.contributions-list {
+    margin-top: 15px;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.contributions-list h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.contribution {
+    background: white;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-left: 3px solid #0070f3;
+}
+
+.contribution p {
+    margin: 0 0 8px 0;
+    color: #333;
+}
+
+.contribution small {
+    display: block;
+    color: #666;
+    font-size: 0.85em;
+}
+
+.contribution-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.contribution-section textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+}
+
+.contribution-section button {
+    background: #0070f3;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.contribution-section button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
