@@ -38,11 +38,11 @@ const CollaborativeAnalysis = ({ entries, contributions, theme }) => {
                 ).join('\n\n')}
 
                 Please analyze how different participants engaged with the theme "${theme}", including:
-                1. How each participant interpreted and responded to the theme
+                1. Overall patterns in the discussion
                 2. Key similarities and differences in perspectives
                 3. How the discussion evolved through the contributions
-                4. Common emotional threads across responses
-                5. Unique insights each participant brought to the theme
+                4. Sentiment and emotional patterns over time
+                5. Any other themes or patterns that emerge from the discussion
                 
                 Format the response in clear sections with bullet points where appropriate.
             `;

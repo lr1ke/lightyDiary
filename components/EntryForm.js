@@ -4,6 +4,8 @@ import DiaryContract from '../artifacts/contracts/DiaryContract.sol/DiaryContrac
 import '../styles/EntryForm.css';
 import DiaryAnalysis from './DiaryAnalysis';
 import CollaborativeAnalysis from './CollaborativeAnalysis';
+import GlobalEntriesAnalysis from './GlobalEntriesAnalysis';
+
 
 
 
@@ -516,6 +518,11 @@ const EntryForm = () => {
 
             <div className="entries-section">
                 <h2>All Entries</h2>
+                
+                {allEntries.length > 0 && (
+                    <GlobalEntriesAnalysis entries={allEntries} />
+                )}
+
                 {allEntries.map(entry => {
                     console.log('Entry contributions:', {
                         entryId: entry.id,
