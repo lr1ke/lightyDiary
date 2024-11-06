@@ -3,6 +3,8 @@ import { ethers } from 'ethers';
 import DiaryContract from '../artifacts/contracts/DiaryContract.sol/DiaryContract.json';
 import '../styles/EntryForm.css';
 import DiaryAnalysis from './DiaryAnalysis';
+import CollaborativeAnalysis from './CollaborativeAnalysis';
+
 
 
 const EntryForm = () => {
@@ -623,6 +625,14 @@ const EntryForm = () => {
                         </div>
                     );
                 })}
+
+                {allEntries.filter(entry => entry.isCollaborative).length > 0 && (
+                    <CollaborativeAnalysis 
+                        entries={allEntries.filter(entry => entry.isCollaborative)}
+                        contributions={entryContributions}
+                        theme={allEntries.find(entry => entry.isCollaborative)?.title || 'Collaborative Discussion'}
+                    />
+                )}
             </div>
             {error && <div className="error-message">{error}</div>}
         </div>
