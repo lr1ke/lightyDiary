@@ -538,108 +538,108 @@ const EntryForm = () => {
             <div className="entries-section">
                 <h2>Collaborative Threads</h2>
                 
-                {allEntries.filter(entry => entry.isCollaborative).map(entry => (
-                    <div key={entry.id} className="entry-container">
-                        <div className="entry">
-                            <div className="entry-header">
-                                <div className="entry-title">
-                                    <span className="entry-type-tag">👥 Collaborative</span>
-                                    <div className="collaborative-title">
-                                        <h3>Theme: {entry.title}</h3>
-                                    </div>
-                                </div>
-                                <span className="entry-status">
-                                    {entry.isFinalized ? '✅ Finalized' : '🔓 Open for contributions'}
-                                </span>
-                            </div>
-                            <p className="entry-content">{entry.content}</p>
-                            <div className="entry-metadata">
-                                <small className="clickable" onClick={() => setExpandedAddress(expandedAddress === entry.owner ? null : entry.owner)}>
-                                    Created by: {expandedAddress === entry.owner ? entry.owner : `${entry.owner.slice(0, 5)}...`}
-                                </small>
-                                <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
-                                {entry.location && (
-                                    <small 
-                                        className="contribution-location clickable"
-                                        onClick={() => setExpandedLocation(expandedLocation === entry.id ? null : entry.id)}
-                                        title="Click to expand/collapse"
-                                    >
-                                        📍 {expandedLocation === entry.id ? entry.location : `${entry.location.slice(0, 15)}...`}
-                                    </small>
-                                )}
-                            </div>
-                        </div>
-
-                        {entry.isCollaborative && (
-                            <div className="collaborative-section">
-                                {(entryContributions[entry.id] || []).map((contribution, index) => (
-                                    <div key={`${entry.id}-${index}`} className="contribution">
-                                        <p>{contribution.content}</p>
-                                        <div className="contribution-metadata">
-                                            <div className="contributor-address">
-                                                <span className="address-label">Contributor:</span>
-                                                <span 
-                                                    className="address-value clickable"
-                                                    onClick={() => setExpandedAddress(expandedAddress === contribution.contributor ? null : contribution.contributor)}
-                                                    title="Click to expand/collapse"
-                                                >
-                                                    {expandedAddress === contribution.contributor 
-                                                        ? contribution.contributor
-                                                        : `${contribution.contributor.slice(0, 5)}...`}
-                                                </span>
-                                            </div>
-                                            <small>
-                                                On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
-                                            </small>
-                                            {contribution.location && (
-                                                <small 
-                                                    className="contribution-location clickable"
-                                                    onClick={() => setExpandedLocation(expandedLocation === `${entry.id}-${index}` ? null : `${entry.id}-${index}`)}
-                                                    title="Click to expand/collapse"
-                                                >
-                                                    📍 {expandedLocation === `${entry.id}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
-                                                </small>
-                                            )}
+                {allEntries.filter(entry => entry.isCollaborative).map(entry => {
+                    console.log('Rendering collaborative entry:', {
+                        id: entry.id,
+                        title: entry.title,
+                        isCollaborative: entry.isCollaborative
+                    });
+                    return (
+                        <div key={entry.id} className="entry-container">
+                            <div className="entry">
+                                <div className="entry-header">
+                                    <div className="entry-title">
+                                        <span className="entry-type-tag">👥 Collaborative</span>
+                                        <div className="collaborative-title">
+                                            <h3>Theme: {entry.title}</h3>
                                         </div>
                                     </div>
-                                ))}
-
-                                {!entry.isFinalized && (
-                                    <div className="contribution-form">
-                                        <textarea
-                                            value={contributionContent}
-                                            onChange={(e) => setContributionContent(e.target.value)}
-                                            placeholder="Add your contribution..."
-                                        />
-                                        <button 
-                                            onClick={() => {
-                                                addContribution(entry.id, contributionContent);
-                                                setContributionContent(''); // Clear input after submission
-                                            }}
-                                            disabled={!contributionContent.trim()}
+                                    <span className="entry-status">
+                                        {entry.isFinalized ? '✅ Finalized' : '🔓 Open for contributions'}
+                                    </span>
+                                </div>
+                                <p className="entry-content">{entry.content}</p>
+                                <div className="entry-metadata">
+                                    <small className="clickable" onClick={() => setExpandedAddress(expandedAddress === entry.owner ? null : entry.owner)}>
+                                        Created by: {expandedAddress === entry.owner ? entry.owner : `${entry.owner.slice(0, 5)}...`}
+                                    </small>
+                                    <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
+                                    {entry.location && (
+                                        <small 
+                                            className="contribution-location clickable"
+                                            onClick={() => setExpandedLocation(expandedLocation === entry.id ? null : entry.id)}
+                                            title="Click to expand/collapse"
                                         >
-                                            Add Contribution
-                                        </button>
-                                    </div>
-                                )}
-
-                                <CollaborativeAnalysis 
-                                    entry={entry}
-                                    contributions={entryContributions[entry.id] || []}
-                                    theme={entry.title}
-                                />
+                                            📍 {expandedLocation === entry.id ? entry.location : `${entry.location.slice(0, 15)}...`}
+                                        </small>
+                                    )}
+                                </div>
                             </div>
-                        )}
-                    </div>
-                ))}
 
-                {allEntries.filter(entry => entry.isCollaborative).length > 0 && (
-                    <CollaborativeAnalysis 
-                        entries={allEntries.filter(entry => entry.isCollaborative)}
-                        contributions={entryContributions}
-                        theme={allEntries.find(entry => entry.isCollaborative)?.title || 'Collaborative Discussion'}
-                    />
-                )}
+                            {entry.isCollaborative && (
+                                <div className="collaborative-section">
+                                    {(entryContributions[entry.id] || []).map((contribution, index) => (
+                                        <div key={`${entry.id}-${index}`} className="contribution">
+                                            <p>{contribution.content}</p>
+                                            <div className="contribution-metadata">
+                                                <div className="contributor-address">
+                                                    <span className="address-label">Contributor:</span>
+                                                    <span 
+                                                        className="address-value clickable"
+                                                        onClick={() => setExpandedAddress(expandedAddress === contribution.contributor ? null : contribution.contributor)}
+                                                        title="Click to expand/collapse"
+                                                    >
+                                                        {expandedAddress === contribution.contributor 
+                                                            ? contribution.contributor
+                                                            : `${contribution.contributor.slice(0, 5)}...`}
+                                                    </span>
+                                                </div>
+                                                <small>
+                                                    On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
+                                                </small>
+                                                {contribution.location && (
+                                                    <small 
+                                                        className="contribution-location clickable"
+                                                        onClick={() => setExpandedLocation(expandedLocation === `${entry.id}-${index}` ? null : `${entry.id}-${index}`)}
+                                                        title="Click to expand/collapse"
+                                                    >
+                                                        📍 {expandedLocation === `${entry.id}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
+                                                    </small>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {!entry.isFinalized && (
+                                        <div className="contribution-form">
+                                            <textarea
+                                                value={contributionContent}
+                                                onChange={(e) => setContributionContent(e.target.value)}
+                                                placeholder="Add your contribution..."
+                                            />
+                                            <button 
+                                                onClick={() => {
+                                                    addContribution(entry.id, contributionContent);
+                                                    setContributionContent(''); // Clear input after submission
+                                                }}
+                                                disabled={!contributionContent.trim()}
+                                            >
+                                                Add Contribution
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <CollaborativeAnalysis 
+                                        entry={entry}
+                                        contributions={entryContributions[entry.id] || []}
+                                        theme={entry.title}
+                                    />
+                                    console.log('Rendering CollaborativeAnalysis for entry:', entry.id, entry.title);
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
             <div className="entries-section">
