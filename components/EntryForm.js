@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import DiaryContract from '../artifacts/contracts/DiaryContract.sol/DiaryContract.json';
 import '../styles/EntryForm.css';
+import DiaryAnalysis from './DiaryAnalysis';
+
 
 const EntryForm = () => {
     const [content, setContent] = useState('');
@@ -505,44 +507,9 @@ const EntryForm = () => {
                     );
                 })}
 
-                <div className="my-contributions-section">
-                    <h3>My Contributions to Collaborative Entries</h3>
-                    {Object.entries(myContributions).map(([entryId, data]) => (
-                        <div key={entryId} className="contribution-summary">
-                            <h4>
-                                Contributions to: "{data.entryTitle}"
-                                <button 
-                                    className="view-entry-link"
-                                    onClick={() => {
-                                        const element = document.getElementById(`entry-${entryId}`);
-                                        element?.scrollIntoView({ behavior: 'smooth' });
-                                    }}
-                                >
-                                    View Full Entry
-                                </button>
-                            </h4>
-                            {data.contributions.map((contribution, index) => (
-                                <div key={index} className="my-contribution">
-                                    <p>{contribution.content}</p>
-                                    <div className="contribution-metadata">
-                                        <small>
-                                            On: {new Date(contribution.timestamp * 1000).toLocaleString()}
-                                        </small>
-                                        {contribution.location && (
-                                            <small 
-                                                className="contribution-location clickable"
-                                                onClick={() => setExpandedLocation(expandedLocation === `${entryId}-${index}` ? null : `${entryId}-${index}`)}
-                                                title="Click to expand/collapse"
-                                            >
-                                                📍 {expandedLocation === `${entryId}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
-                                            </small>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
+                {myEntries.length > 0 && (
+                    <DiaryAnalysis entries={myEntries} />
+                )}
             </div>
 
             <div className="entries-section">
