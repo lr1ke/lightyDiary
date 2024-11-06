@@ -17,6 +17,9 @@ const EntryForm = () => {
     const [error, setError] = useState('');
     const [location, setLocation] = useState('');
     const [locationError, setLocationError] = useState('');
+    const [myContributions, setMyContributions] = useState({});
+    const [expandedAddress, setExpandedAddress] = useState(null);
+    const [expandedLocation, setExpandedLocation] = useState(null);
 
     useEffect(() => {
         const initContract = async () => {
@@ -50,6 +53,7 @@ const EntryForm = () => {
                 
                 try {
                     await loadEntries(contractInstance);
+                    await loadMyContributions(contractInstance);
                 } catch (err) {
                     console.error('Error in loadEntries:', err);
                 }
@@ -118,7 +122,8 @@ const EntryForm = () => {
                 return {
                     contributor: contribution.contributor,
                     content: contribution.content,
-                    timestamp: Number(contribution.timestamp)
+                    timestamp: Number(contribution.timestamp),
+                    location: contribution.location
                 };
             });
             
@@ -143,7 +148,7 @@ const EntryForm = () => {
             setLocationError('Geolocation is not supported by your browser');
             return;
         }
-
+    
         return new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
@@ -151,14 +156,20 @@ const EntryForm = () => {
                         const { latitude, longitude } = position.coords;
                         console.log('Got coordinates:', { latitude, longitude });
                         
-                        // Use reverse geocoding to get readable address
                         const response = await fetch(
                             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
                         );
                         const data = await response.json();
                         console.log('Location data:', data);
                         
-                        const locationString = data.display_name || `${latitude}, ${longitude}`;
+                        // Extract just the city/town name from the address object
+                        const locationString = data.address.city || 
+                                            data.address.town || 
+                                            data.address.village || 
+                                            data.address.suburb ||
+                                            data.address.municipality ||
+                                            `${latitude}, ${longitude}`;
+                        
                         console.log('Final location string:', locationString);
                         setLocation(locationString);
                         resolve(locationString);
@@ -175,7 +186,6 @@ const EntryForm = () => {
             );
         });
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -186,6 +196,8 @@ const EntryForm = () => {
             
             // Get location before creating entry
             const locationString = await getLocation();
+            console.log('Location received:', locationString);
+
             
             let tx;
             if (isCollaborative) {
@@ -207,17 +219,22 @@ const EntryForm = () => {
         }
     };
 
-    const addContribution = async (entryId, contribution) => {
+    const addContribution = async (entryId, contributionContent) => {
         try {
-            if (!contract || !contribution.trim()) return;
+            if (!contract || !contributionContent.trim()) return;
             
             setLoading(true);
-            
+            console.log('Starting contribution process:', entryId);
+
             // Get location before adding contribution
             const locationString = await getLocation();
+            console.log('Location for contribution:', locationString);
             
-            const tx = await contract.addContribution(entryId, contribution, locationString);
+            const tx = await contract.addContribution(entryId, contributionContent, locationString);
+            console.log('Transaction created:', tx);
+            
             await tx.wait();
+            console.log('Transaction confirmed');
             
             setContributionContent('');
             await loadEntries(contract);
@@ -271,6 +288,38 @@ const EntryForm = () => {
             setError(error.message || 'Failed to finalize entry');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadMyContributions = async (contractInstance) => {
+        try {
+            const allEntries = await contractInstance.getAllEntries();
+            const userAddress = window.ethereum.selectedAddress.toLowerCase();
+            const contributionsMap = {};
+
+            for (const entry of allEntries) {
+                if (entry.isCollaborative) {
+                    const contributions = await contractInstance.getEntryContributions(entry.id);
+                    const myContributionsToEntry = Array.from(contributions).filter(
+                        contribution => contribution.contributor.toLowerCase() === userAddress
+                    );
+
+                    if (myContributionsToEntry.length > 0) {
+                        contributionsMap[entry.id] = {
+                            entryTitle: entry.title,
+                            contributions: myContributionsToEntry.map(contribution => ({
+                                content: contribution.content,
+                                timestamp: Number(contribution.timestamp),
+                                location: contribution.location
+                            }))
+                        };
+                    }
+                }
+            }
+            
+            setMyContributions(contributionsMap);
+        } catch (error) {
+            console.error('Error loading my contributions:', error);
         }
     };
 
@@ -341,7 +390,11 @@ const EntryForm = () => {
                                     <span className="entry-type-tag">
                                         {entry.isCollaborative ? '👥 Collaborative' : '📝 Regular'}
                                     </span>
-                                    {entry.isCollaborative && <h3>{entry.title}</h3>}
+                                    {entry.isCollaborative && (
+                                        <div className="collaborative-title">
+                                            <h3>Theme: {entry.title}</h3>
+                                        </div>
+                                    )}
                                 </div>
                                 <span className="entry-status">
                                     {entry.isCollaborative && (entry.isFinalized ? '✅ Finalized' : '🔓 Open for contributions')}
@@ -349,11 +402,17 @@ const EntryForm = () => {
                             </div>
                             <p className="entry-content">{entry.content}</p>
                             <div className="entry-metadata">
-                                <small>Created by: {entry.owner}</small>
+                                <small className="clickable" onClick={() => setExpandedAddress(expandedAddress === entry.owner ? null : entry.owner)}>
+                                    Created by: {expandedAddress === entry.owner ? entry.owner : `${entry.owner.slice(0, 5)}...`}
+                                </small>
                                 <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
                                 {entry.location && (
-                                    <small className="entry-location">
-                                        📍 Location: {entry.location}
+                                    <small 
+                                        className="contribution-location clickable"
+                                        onClick={() => setExpandedLocation(expandedLocation === entry.id ? null : entry.id)}
+                                        title="Click to expand/collapse"
+                                    >
+                                        📍 {expandedLocation === entry.id ? entry.location : `${entry.location.slice(0, 15)}...`}
                                     </small>
                                 )}
                             </div>
@@ -374,6 +433,45 @@ const EntryForm = () => {
                         </div>
                     );
                 })}
+
+                <div className="my-contributions-section">
+                    <h3>My Contributions to Collaborative Entries</h3>
+                    {Object.entries(myContributions).map(([entryId, data]) => (
+                        <div key={entryId} className="contribution-summary">
+                            <h4>
+                                Contributions to: "{data.entryTitle}"
+                                <button 
+                                    className="view-entry-link"
+                                    onClick={() => {
+                                        const element = document.getElementById(`entry-${entryId}`);
+                                        element?.scrollIntoView({ behavior: 'smooth' });
+                                    }}
+                                >
+                                    View Full Entry
+                                </button>
+                            </h4>
+                            {data.contributions.map((contribution, index) => (
+                                <div key={index} className="my-contribution">
+                                    <p>{contribution.content}</p>
+                                    <div className="contribution-metadata">
+                                        <small>
+                                            On: {new Date(contribution.timestamp * 1000).toLocaleString()}
+                                        </small>
+                                        {contribution.location && (
+                                            <small 
+                                                className="contribution-location clickable"
+                                                onClick={() => setExpandedLocation(expandedLocation === `${entryId}-${index}` ? null : `${entryId}-${index}`)}
+                                                title="Click to expand/collapse"
+                                            >
+                                                📍 {expandedLocation === `${entryId}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
+                                            </small>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <div className="entries-section">
@@ -385,13 +483,21 @@ const EntryForm = () => {
                     });
                     
                     return (
-                        <div key={entry.id} className={`entry ${entry.isCollaborative ? 'collaborative' : ''}`}>
+                        <div 
+                            key={entry.id} 
+                            id={`entry-${entry.id}`} 
+                            className={`entry ${entry.isCollaborative ? 'collaborative' : ''}`}
+                        >
                             <div className="entry-header">
                                 <div className="entry-title">
                                     <span className="entry-type-tag">
                                         {entry.isCollaborative ? '👥 Collaborative' : '📝 Regular'}
                                     </span>
-                                    {entry.isCollaborative && <h3>{entry.title}</h3>}
+                                    {entry.isCollaborative && (
+                                        <div className="collaborative-title">
+                                            <h3>Theme: {entry.title}</h3>
+                                        </div>
+                                    )}
                                 </div>
                                 <span className="entry-status">
                                     {entry.isCollaborative && (entry.isFinalized ? '✅ Finalized' : '🔓 Open for contributions')}
@@ -399,13 +505,15 @@ const EntryForm = () => {
                             </div>
                             <p className="entry-content">{entry.content}</p>
                             <div className="entry-metadata">
-                                <small>Created by: {entry.owner}</small>
+                                <small className="clickable" onClick={() => setExpandedAddress(expandedAddress === entry.owner ? null : entry.owner)}>
+                                    Created by: {expandedAddress === entry.owner ? entry.owner : `${entry.owner.slice(0, 5)}...`}
+                                </small>
                                 <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
                                 {entry.location && (
-                                    <small className="entry-location">
-                                        📍 Location: {entry.location}
-                                    </small>
-                                )}
+                                <small className="contribution-location">
+                                    📍 {entry.location.slice(0, 15)}
+                                </small>
+                            )}
                             </div>
                             
                             {entry.isCollaborative && 
@@ -428,11 +536,32 @@ const EntryForm = () => {
                                     {entryContributions[entry.id]?.map((contribution, index) => (
                                         <div key={index} className="contribution">
                                             <p>{contribution.content}</p>
-                                            <small>
-                                                By: {contribution.contributor.slice(0, 6)}...{contribution.contributor.slice(-4)}
-                                                <br />
-                                                On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
-                                            </small>
+                                            <div className="contribution-metadata">
+                                                <div className="contributor-address">
+                                                    <span className="address-label">Contributor:</span>
+                                                    <span 
+                                                        className="address-value clickable"
+                                                        onClick={() => setExpandedAddress(expandedAddress === contribution.contributor ? null : contribution.contributor)}
+                                                        title="Click to expand/collapse"
+                                                    >
+                                                        {expandedAddress === contribution.contributor 
+                                                            ? contribution.contributor
+                                                            : `${contribution.contributor.slice(0, 5)}...`}
+                                                    </span>
+                                                </div>
+                                                <small>
+                                                    On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
+                                                </small>
+                                                {contribution.location && (
+                                                    <small 
+                                                        className="contribution-location clickable"
+                                                        onClick={() => setExpandedLocation(expandedLocation === `${entry.id}-${index}` ? null : `${entry.id}-${index}`)}
+                                                        title="Click to expand/collapse"
+                                                    >
+                                                        📍 {expandedLocation === `${entry.id}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
+                                                    </small>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

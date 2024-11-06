@@ -1,222 +1,258 @@
-.entry {
-    background: white;
+.container {
+    max-width: 900px;
+    margin: 0 auto;
     padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.entry.collaborative {
-    border-left: 4px solid #0070f3;
+.entry-form {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 15px;
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    font-size: 16px;
+    resize: vertical;
+    transition: border-color 0.3s;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: #0070f3;
+    box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
+}
+
+.entry-type {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.entry-type label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.entry-type label:hover {
+    background: #e9ecef;
+}
+
+.entries-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.entries-section h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.entry {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #edf2f7;
+}
+
+.entry:hover {
+    transform: translateY(-2px);
+}
+
+.collaborative {
+    border-left: 3px solid rgba(0, 112, 243, 0.5);
 }
 
 .entry-header {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 10px;
+    align-items: center;
+    margin-bottom: 15px;
 }
 
 .entry-type-tag {
-    background: #f0f0f0;
+    font-size: 0.85em;
+    color: #718096;
+    background: #f7fafc;
     padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 14px;
+    border-radius: 12px;
 }
 
 .entry-status {
-    color: #666;
-    font-size: 14px;
-}
-
-.entry-content {
-    margin: 15px 0;
-    line-height: 1.6;
-}
-
-.contributor-section, .contribution-section {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-}
-
-.contributor-section input, .contribution-section textarea {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.contributor-section button, .contribution-section button {
-    background: #0070f3;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-.contributor-section button:hover, .contribution-section button:hover {
-    background: #0051a2;
-}
-
-small {
-    display: block;
-    color: #666;
-    margin-top: 5px;
+    font-size: 0.85em;
+    color: #718096;
 }
 
 .contributions-list {
-    margin-top: 15px;
-    padding: 15px;
-    background: #f5f5f5;
-    border-radius: 8px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #edf2f7;
 }
 
 .contributions-list h4 {
-    margin: 0 0 10px 0;
-    color: #333;
+    color: #4a5568;
+    font-size: 0.95em;
+    margin-bottom: 15px;
 }
 
 .contribution {
-    background: white;
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    border-left: 3px solid #0070f3;
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 12px;
 }
 
 .contribution p {
-    margin: 0 0 8px 0;
-    color: #333;
-}
-
-.contribution small {
-    display: block;
-    color: #666;
-    font-size: 0.85em;
-}
-
-.contribution-section {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-}
-
-.contribution-section textarea {
-    width: 100%;
-    min-height: 80px;
-    padding: 10px;
+    color: #2d3748;
     margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    resize: vertical;
 }
 
-.contribution-section button {
-    background: #0070f3;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
+.contribution:hover {
+    background: #e9ecef;
 }
 
-.contribution-section button:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+.my-contributions-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.error-message {
-    background: #fff2f2;
-    color: #d63031;
-    padding: 10px;
-    border-radius: 4px;
-    margin: 10px 0;
-    border: 1px solid #fab1a0;
+.my-contributions-section h3 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
 }
 
-.title-input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px;
+.contribution-summary {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 4px solid #0070f3;
 }
 
-.entry-title {
+.contribution-summary h4 {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    margin-bottom: 15px;
+    color: #2c3e50;
 }
 
-.entry-title h3 {
+.collaborative-title {
+    margin: 10px 0;
+    padding: 12px 15px;
+    background: rgba(0, 112, 243, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid #0070f3;
+}
+
+.collaborative-title h3 {
     margin: 0;
     color: #0070f3;
-    font-size: 1.2em;
+    font-size: 1.1em;
+    opacity: 0.9;
 }
 
-.entry-actions {
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.finalize-button {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s;
-}
-
-.finalize-button:hover:not(:disabled) {
-    background-color: #218838;
-}
-
-.finalize-button:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-
-.entry-metadata {
+.contributor-address {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    margin-top: 8px;
-    color: #666;
+    font-family: monospace;
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    color: #718096;
+}
+
+.address-label {
+    color: #6c757d;
     font-size: 0.9em;
 }
 
-.entry-metadata small {
-    display: flex;
+.address-value {
+    color: #4a5568;
+    background: #f7fafc;
+    padding: 2px 6px;
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+.finalize-button {
+    background: #28a745;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+    transition: all 0.3s ease;
+    margin-top: 15px;
+    display: inline-block;
+}
+
+.finalize-button:hover:not(:disabled) {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3);
+}
+
+.finalize-button:active {
+    transform: translateY(0);
+}
+
+.contribution-location {
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
+    background: #f7fafc;
+    padding: 3px 8px;
+    border-radius: 12px;
+    color: #718096;
+    font-size: 0.85em;
 }
 
-.entry-metadata small:has(+ small) {
-    margin-bottom: 2px;
-}
-
-.entry-metadata {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid #eee;
-}
-
-.entry-location {
-    color: #666;
+.entry-metadata, 
+.contribution-metadata {
     display: flex;
-    align-items: center;
-    gap: 5px;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #edf2f7;
+    font-size: 0.85em;
+    color: #718096;
+}
+
+.entry-content {
+    font-size: 1.1em;
+    line-height: 1.6;
+    color: #1a1a1a;
+    margin: 20px 0;
+    padding: 10px 0;
 }
 
