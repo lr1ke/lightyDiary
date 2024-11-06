@@ -20,6 +20,8 @@ const EntryForm = () => {
     const [myContributions, setMyContributions] = useState({});
     const [expandedAddress, setExpandedAddress] = useState(null);
     const [expandedLocation, setExpandedLocation] = useState(null);
+    const [isListening, setIsListening] = useState(false);
+    const [recognition, setRecognition] = useState(null);
 
     useEffect(() => {
         const initContract = async () => {
@@ -66,6 +68,55 @@ const EntryForm = () => {
 
         initContract();
     }, []);
+
+    useEffect(() => {
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new window.webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const lastResultIndex = event.results.length - 1;
+                const transcript = event.results[lastResultIndex][0].transcript;
+                console.log('Speech recognition result:', transcript);
+
+                if (isCollaborative && !content) {
+                    setTitle(transcript);
+                } else {
+                    setContent(prevContent => {
+                        const newContent = prevContent.trim() + ' ' + transcript.trim();
+                        console.log('Updated content:', newContent);
+                        return newContent;
+                    });
+                }
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                setIsListening(false);
+            };
+
+            recognition.onend = () => {
+                setIsListening(false);
+            };
+
+            setRecognition(recognition);
+        }
+    }, []);
+
+    const toggleListening = () => {
+        if (!recognition) {
+            setError('Speech recognition is not supported in your browser');
+            return;
+        }
+
+        if (isListening) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+        setIsListening(!isListening);
+    };
 
     const loadEntries = async (contractInstance) => {
         try {
@@ -354,22 +405,42 @@ const EntryForm = () => {
                 </div>
 
                 {isCollaborative && (
-                    <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Enter theme/title for collaboration..."
-                        className="title-input"
-                        required
-                    />
+                    <div className="input-group">
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Enter theme/title for collaboration..."
+                            className="title-input"
+                            required
+                        />
+                        <button 
+                            type="button" 
+                            onClick={toggleListening}
+                            className={`mic-button ${isListening ? 'active' : ''}`}
+                            title="Click to start/stop voice input"
+                        >
+                            {isListening ? '🛑' : '🎤'}
+                        </button>
+                    </div>
                 )}
 
-                <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder={isCollaborative ? "Start a collaborative entry..." : "Write your diary entry..."}
-                    required
-                />
+                <div className="input-group">
+                    <textarea
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder={isCollaborative ? "Start a collaborative entry..." : "Write your diary entry..."}
+                        required
+                    />
+                    <button 
+                        type="button" 
+                        onClick={toggleListening}
+                        className={`mic-button ${isListening ? 'active' : ''}`}
+                        title="Click to start/stop voice input"
+                    >
+                        {isListening ? '🛑' : '🎤'}
+                    </button>
+                </div>
                 
                 <button type="submit" disabled={loading || !content.trim() || (isCollaborative && !title.trim())}>
                     {isCollaborative ? "Create Collaborative Entry" : "Create Entry"}

@@ -256,3 +256,40 @@ textarea:focus {
     padding: 10px 0;
 }
 
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.input-group textarea,
+.input-group input {
+    flex: 1;
+}
+
+.mic-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-left: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.mic-button:hover {
+    transform: scale(1.1);
+}
+
+.mic-button.active {
+    color: #ff4444;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
