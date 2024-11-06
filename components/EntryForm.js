@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ethers } from 'ethers';
 import DiaryContract from '../artifacts/contracts/DiaryContract.sol/DiaryContract.json';
 import '../styles/EntryForm.css';
@@ -13,7 +13,6 @@ const EntryForm = () => {
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [contract, setContract] = useState(null);
-    const [myEntries, setMyEntries] = useState([]);
     const [allEntries, setAllEntries] = useState([]);
     const [loading, setLoading] = useState(true);
     const [entryCount, setEntryCount] = useState(0);
@@ -28,6 +27,7 @@ const EntryForm = () => {
     const [expandedLocation, setExpandedLocation] = useState(null);
     const [isListening, setIsListening] = useState(false);
     const [recognition, setRecognition] = useState(null);
+    const [userAddress, setUserAddress] = useState('');
 
     useEffect(() => {
         const initContract = async () => {
@@ -149,7 +149,6 @@ const EntryForm = () => {
 
             const formattedEntries = formatEntries(allEntriesResult);
             console.log('Formatted entries with location:', formattedEntries);
-            setMyEntries(formatEntries(myEntriesResult));
             setAllEntries(formattedEntries);
             
             for (const entry of formattedEntries) {
@@ -305,41 +304,30 @@ const EntryForm = () => {
 
     const finalizeEntry = async (entryId) => {
         try {
-            if (!contract) {
-                setError('Contract not initialized');
+            if (!contract || !userAddress) {
+                setError('Contract not initialized or user not connected');
                 return;
             }
-    
+
             setLoading(true);
             console.log('Starting finalize process for entry:', entryId);
             
-            // Check if user is the owner
             const entry = allEntries.find(e => e.id === entryId);
             if (!entry) {
                 setError('Entry not found');
                 return;
             }
             
-            console.log('Current user:', window.ethereum.selectedAddress);
-            console.log('Entry owner:', entry.owner);
-            
-            if (entry.owner.toLowerCase() !== window.ethereum.selectedAddress.toLowerCase()) {
+            if (entry.owner.toLowerCase() !== userAddress) {
                 setError('Only the owner can finalize this entry');
                 return;
             }
-    
-            console.log('Calling contract.finalizeEntry...');
+
             const tx = await contract.finalizeEntry(entryId);
-            console.log('Transaction sent:', tx);
-            
-            console.log('Waiting for confirmation...');
             await tx.wait();
-            console.log('Entry finalized successfully');
-            
-            // Reload entries to show updated state
             await loadEntries(contract);
             
-            setError(''); // Clear any previous errors
+            setError('');
         } catch (error) {
             console.error('Error finalizing entry:', error);
             setError(error.message || 'Failed to finalize entry');
@@ -350,8 +338,9 @@ const EntryForm = () => {
 
     const loadMyContributions = async (contractInstance) => {
         try {
+            if (!userAddress) return;
+            
             const allEntries = await contractInstance.getAllEntries();
-            const userAddress = window.ethereum.selectedAddress.toLowerCase();
             const contributionsMap = {};
 
             for (const entry of allEntries) {
@@ -379,6 +368,36 @@ const EntryForm = () => {
             console.error('Error loading my contributions:', error);
         }
     };
+
+    const myEntries = useMemo(() => {
+        if (!userAddress) return [];
+        
+        // Get regular entries owned by the user
+        const ownedEntries = allEntries.filter(entry => 
+            entry.owner.toLowerCase() === userAddress
+        );
+        
+        // Get entries where the user has contributed
+        const contributedEntries = allEntries.filter(entry => {
+            const entryContribs = entryContributions[entry.id] || [];
+            return entryContribs.some(contrib => 
+                contrib.contributor.toLowerCase() === userAddress
+            );
+        });
+        
+        // Combine and remove duplicates
+        return [...new Set([...ownedEntries, ...contributedEntries])];
+    }, [allEntries, entryContributions, userAddress]);
+
+    useEffect(() => {
+        const getUserAddress = async () => {
+            if (window?.ethereum) {
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                setUserAddress(accounts[0].toLowerCase());
+            }
+        };
+        getUserAddress();
+    }, []);
 
     if (loading) return <div>Loading...</div>;
 
@@ -474,7 +493,7 @@ const EntryForm = () => {
                                     )}
                                 </div>
                                 <span className="entry-status">
-                                    {entry.isCollaborative && (entry.isFinalized ? '✅ Finalized' : '🔓 Open for contributions')}
+                                    {entry.isCollaborative && (entry.isFinalized ? '✅ Finalized' : ' Open for contributions')}
                                 </span>
                             </div>
                             <p className="entry-content">{entry.content}</p>
@@ -496,7 +515,7 @@ const EntryForm = () => {
                             
                             {entry.isCollaborative && 
                              !entry.isFinalized && 
-                             entry.owner.toLowerCase() === window.ethereum.selectedAddress.toLowerCase() && (
+                             entry.owner.toLowerCase() === userAddress.toLowerCase() && (
                                 <div className="entry-actions">
                                     <button 
                                         onClick={() => finalizeEntry(entry.id)}
@@ -517,24 +536,122 @@ const EntryForm = () => {
             </div>
 
             <div className="entries-section">
+                <h2>Collaborative Threads</h2>
+                
+                {allEntries.filter(entry => entry.isCollaborative).map(entry => (
+                    <div key={entry.id} className="entry-container">
+                        <div className="entry">
+                            <div className="entry-header">
+                                <div className="entry-title">
+                                    <span className="entry-type-tag">👥 Collaborative</span>
+                                    <div className="collaborative-title">
+                                        <h3>Theme: {entry.title}</h3>
+                                    </div>
+                                </div>
+                                <span className="entry-status">
+                                    {entry.isFinalized ? '✅ Finalized' : '🔓 Open for contributions'}
+                                </span>
+                            </div>
+                            <p className="entry-content">{entry.content}</p>
+                            <div className="entry-metadata">
+                                <small className="clickable" onClick={() => setExpandedAddress(expandedAddress === entry.owner ? null : entry.owner)}>
+                                    Created by: {expandedAddress === entry.owner ? entry.owner : `${entry.owner.slice(0, 5)}...`}
+                                </small>
+                                <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
+                                {entry.location && (
+                                    <small 
+                                        className="contribution-location clickable"
+                                        onClick={() => setExpandedLocation(expandedLocation === entry.id ? null : entry.id)}
+                                        title="Click to expand/collapse"
+                                    >
+                                        📍 {expandedLocation === entry.id ? entry.location : `${entry.location.slice(0, 15)}...`}
+                                    </small>
+                                )}
+                            </div>
+                        </div>
+
+                        {entry.isCollaborative && (
+                            <div className="collaborative-section">
+                                {(entryContributions[entry.id] || []).map((contribution, index) => (
+                                    <div key={`${entry.id}-${index}`} className="contribution">
+                                        <p>{contribution.content}</p>
+                                        <div className="contribution-metadata">
+                                            <div className="contributor-address">
+                                                <span className="address-label">Contributor:</span>
+                                                <span 
+                                                    className="address-value clickable"
+                                                    onClick={() => setExpandedAddress(expandedAddress === contribution.contributor ? null : contribution.contributor)}
+                                                    title="Click to expand/collapse"
+                                                >
+                                                    {expandedAddress === contribution.contributor 
+                                                        ? contribution.contributor
+                                                        : `${contribution.contributor.slice(0, 5)}...`}
+                                                </span>
+                                            </div>
+                                            <small>
+                                                On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
+                                            </small>
+                                            {contribution.location && (
+                                                <small 
+                                                    className="contribution-location clickable"
+                                                    onClick={() => setExpandedLocation(expandedLocation === `${entry.id}-${index}` ? null : `${entry.id}-${index}`)}
+                                                    title="Click to expand/collapse"
+                                                >
+                                                    📍 {expandedLocation === `${entry.id}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
+                                                </small>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {!entry.isFinalized && (
+                                    <div className="contribution-form">
+                                        <textarea
+                                            value={contributionContent}
+                                            onChange={(e) => setContributionContent(e.target.value)}
+                                            placeholder="Add your contribution..."
+                                        />
+                                        <button 
+                                            onClick={() => {
+                                                addContribution(entry.id, contributionContent);
+                                                setContributionContent(''); // Clear input after submission
+                                            }}
+                                            disabled={!contributionContent.trim()}
+                                        >
+                                            Add Contribution
+                                        </button>
+                                    </div>
+                                )}
+
+                                <CollaborativeAnalysis 
+                                    entry={entry}
+                                    contributions={entryContributions[entry.id] || []}
+                                    theme={entry.title}
+                                />
+                            </div>
+                        )}
+                    </div>
+                ))}
+
+                {allEntries.filter(entry => entry.isCollaborative).length > 0 && (
+                    <CollaborativeAnalysis 
+                        entries={allEntries.filter(entry => entry.isCollaborative)}
+                        contributions={entryContributions}
+                        theme={allEntries.find(entry => entry.isCollaborative)?.title || 'Collaborative Discussion'}
+                    />
+                )}
+            </div>
+
+            <div className="entries-section">
                 <h2>All Entries</h2>
                 
                 {allEntries.length > 0 && (
                     <GlobalEntriesAnalysis entries={allEntries} />
                 )}
 
-                {allEntries.map(entry => {
-                    console.log('Entry contributions:', {
-                        entryId: entry.id,
-                        contributions: entryContributions[entry.id]
-                    });
-                    
-                    return (
-                        <div 
-                            key={entry.id} 
-                            id={`entry-${entry.id}`} 
-                            className={`entry ${entry.isCollaborative ? 'collaborative' : ''}`}
-                        >
+                {allEntries.map(entry => (
+                    <div key={entry.id} className="entry-container">
+                        <div className="entry">
                             <div className="entry-header">
                                 <div className="entry-title">
                                     <span className="entry-type-tag">
@@ -557,89 +674,54 @@ const EntryForm = () => {
                                 </small>
                                 <small>Date: {new Date(Number(entry.timestamp) * 1000).toLocaleString()}</small>
                                 {entry.location && (
-                                <small className="contribution-location">
-                                    📍 {entry.location.slice(0, 15)}
-                                </small>
-                            )}
+                                    <small 
+                                        className="contribution-location clickable"
+                                        onClick={() => setExpandedLocation(expandedLocation === entry.id ? null : entry.id)}
+                                        title="Click to expand/collapse"
+                                    >
+                                        📍 {expandedLocation === entry.id ? entry.location : `${entry.location.slice(0, 15)}...`}
+                                    </small>
+                                )}
                             </div>
-                            
-                            {entry.isCollaborative && 
-                             !entry.isFinalized && 
-                             entry.owner.toLowerCase() === window.ethereum.selectedAddress.toLowerCase() && (
-                                <div className="entry-actions">
-                                    <button 
-                                        onClick={() => finalizeEntry(entry.id)}
-                                        className="finalize-button"
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Finalizing...' : 'Finalize Entry'}
-                                    </button>
-                                </div>
-                            )}
-
-                            {entry.isCollaborative && (
-                                <div className="contributions-list">
-                                    <h4>Contributions ({entryContributions[entry.id]?.length || 0})</h4>
-                                    {entryContributions[entry.id]?.map((contribution, index) => (
-                                        <div key={index} className="contribution">
-                                            <p>{contribution.content}</p>
-                                            <div className="contribution-metadata">
-                                                <div className="contributor-address">
-                                                    <span className="address-label">Contributor:</span>
-                                                    <span 
-                                                        className="address-value clickable"
-                                                        onClick={() => setExpandedAddress(expandedAddress === contribution.contributor ? null : contribution.contributor)}
-                                                        title="Click to expand/collapse"
-                                                    >
-                                                        {expandedAddress === contribution.contributor 
-                                                            ? contribution.contributor
-                                                            : `${contribution.contributor.slice(0, 5)}...`}
-                                                    </span>
-                                                </div>
-                                                <small>
-                                                    On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
-                                                </small>
-                                                {contribution.location && (
-                                                    <small 
-                                                        className="contribution-location clickable"
-                                                        onClick={() => setExpandedLocation(expandedLocation === `${entry.id}-${index}` ? null : `${entry.id}-${index}`)}
-                                                        title="Click to expand/collapse"
-                                                    >
-                                                        📍 {expandedLocation === `${entry.id}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
-                                                    </small>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                            
-                            {entry.isCollaborative && !entry.isFinalized && (
-                                <div className="contribution-section">
-                                    <textarea
-                                        value={contributionContent}
-                                        placeholder="Add your contribution..."
-                                        onChange={(e) => setContributionContent(e.target.value)}
-                                    />
-                                    <button 
-                                        onClick={() => addContribution(entry.id, contributionContent)}
-                                        disabled={!contributionContent.trim() || loading}
-                                    >
-                                        {loading ? 'Adding...' : 'Add Contribution'}
-                                    </button>
-                                </div>
-                            )}
                         </div>
-                    );
-                })}
 
-                {allEntries.filter(entry => entry.isCollaborative).length > 0 && (
-                    <CollaborativeAnalysis 
-                        entries={allEntries.filter(entry => entry.isCollaborative)}
-                        contributions={entryContributions}
-                        theme={allEntries.find(entry => entry.isCollaborative)?.title || 'Collaborative Discussion'}
-                    />
-                )}
+                        {entry.isCollaborative && (
+                            <div className="collaborative-section">
+                                {(entryContributions[entry.id] || []).map((contribution, index) => (
+                                    <div key={`${entry.id}-${index}`} className="contribution">
+                                        <p>{contribution.content}</p>
+                                        <div className="contribution-metadata">
+                                            <div className="contributor-address">
+                                                <span className="address-label">Contributor:</span>
+                                                <span 
+                                                    className="address-value clickable"
+                                                    onClick={() => setExpandedAddress(expandedAddress === contribution.contributor ? null : contribution.contributor)}
+                                                    title="Click to expand/collapse"
+                                                >
+                                                    {expandedAddress === contribution.contributor 
+                                                        ? contribution.contributor
+                                                        : `${contribution.contributor.slice(0, 5)}...`}
+                                                </span>
+                                            </div>
+                                            <small>
+                                                On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
+                                            </small>
+                                            {contribution.location && (
+                                                <small 
+                                                    className="contribution-location clickable"
+                                                    onClick={() => setExpandedLocation(expandedLocation === `${entry.id}-${index}` ? null : `${entry.id}-${index}`)}
+                                                    title="Click to expand/collapse"
+                                                >
+                                                    📍 {expandedLocation === `${entry.id}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
+                                                </small>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ))}
             </div>
             {error && <div className="error-message">{error}</div>}
         </div>

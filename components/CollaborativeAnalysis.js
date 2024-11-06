@@ -8,41 +8,34 @@ const openai = new OpenAI({
     dangerouslyAllowBrowser: true
 });
 
-const CollaborativeAnalysis = ({ entries, contributions, theme }) => {
+const CollaborativeAnalysis = ({ entry, contributions, theme }) => {
     const [analysisResults, setAnalysisResults] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [error, setError] = useState('');
 
-    const analyzeCollaborativeEntries = async () => {
+    const analyzeCollaborativeEntry = async () => {
         try {
             setIsAnalyzing(true);
             setError('');
-
-            // Prepare all entries and their contributions for analysis
-            const analysisData = entries.map(entry => ({
-                content: entry.content,
-                author: entry.owner,
-                contributions: contributions[entry.id] || []
-            }));
 
             const analysisPrompt = `
                 Analyze this collaborative discussion about the theme: "${theme}"
 
                 Original Entry:
-                Author: ${analysisData[0].author}
-                Content: ${analysisData[0].content}
+                Author: ${entry.owner}
+                Content: ${entry.content}
 
                 Contributions:
-                ${analysisData[0].contributions.map(contrib => 
+                ${contributions.map(contrib => 
                     `From ${contrib.contributor}:\n${contrib.content}`
                 ).join('\n\n')}
 
-                Please analyze how different participants engaged with the theme "${theme}", including:
-                1. Overall patterns in the discussion
+                Please analyze how participants engaged with this specific theme "${theme}", including:
+                1. How each participant interpreted and responded to the theme
                 2. Key similarities and differences in perspectives
                 3. How the discussion evolved through the contributions
-                4. Sentiment and emotional patterns over time
-                5. Any other themes or patterns that emerge from the discussion
+                4. Common emotional threads across responses
+                5. Unique insights each participant brought to the discussion
                 
                 Format the response in clear sections with bullet points where appropriate.
             `;
@@ -57,8 +50,8 @@ const CollaborativeAnalysis = ({ entries, contributions, theme }) => {
             setAnalysisResults(response.choices[0].message.content);
 
         } catch (error) {
-            console.error('Error analyzing collaborative entries:', error);
-            setError('Failed to analyze entries: ' + error.message);
+            console.error('Error analyzing collaborative entry:', error);
+            setError('Failed to analyze entry: ' + error.message);
         } finally {
             setIsAnalyzing(false);
         }
@@ -66,15 +59,13 @@ const CollaborativeAnalysis = ({ entries, contributions, theme }) => {
 
     return (
         <div className="collaborative-analysis-section">
-            <h3>Collaborative Analysis</h3>
-            
             <div className="analysis-controls">
                 <button 
-                    onClick={analyzeCollaborativeEntries}
+                    onClick={analyzeCollaborativeEntry}
                     disabled={isAnalyzing}
                     className="analyze-button"
                 >
-                    {isAnalyzing ? 'Analyzing...' : 'Analyze Collaborative Discussions'}
+                    {isAnalyzing ? 'Analyzing...' : 'Analyze Discussion'}
                 </button>
             </div>
 
@@ -83,14 +74,9 @@ const CollaborativeAnalysis = ({ entries, contributions, theme }) => {
             {analysisResults && (
                 <div className="analysis-results">
                     <div className="theme-header">
-                        <h4>Analysis of Collaborative Entries</h4>
+                        <h4>Analysis of "{theme}"</h4>
                         <span className="participant-count">
-                            {entries.length} Themes with {
-                                entries.reduce((total, entry) => 
-                                    total + (contributions[entry.id]?.length || 0), 
-                                    entries.length
-                                )
-                            } Total Responses
+                            {contributions.length + 1} Participants
                         </span>
                     </div>
                     <pre className="analysis-content">
