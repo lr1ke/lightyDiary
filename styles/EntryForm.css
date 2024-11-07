@@ -202,28 +202,44 @@ textarea:focus {
     word-break: break-all;
 }
 
+/* Color variables for the buttons */
+:root {
+    --rose-primary: #FF9A9E;
+    --rose-dark: #FF8389;
+    --rose-light: #FFD1D1;
+}
+
+Style for all action buttons
+.analyze-button,
+.compare-button,
+.export-button,
+.contribution-button,
 .finalize-button {
-    background: #28a745;
+    background-color: var(--rose-primary);
     color: white;
-    padding: 12px 24px;
-    border-radius: 6px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
-    transition: all 0.3s ease;
-    margin-top: 15px;
-    display: inline-block;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.finalize-button:hover:not(:disabled) {
-    background: #218838;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3);
+.analyze-button:hover,
+.compare-button:hover,
+.export-button:hover,
+.contribution-button:hover,
+.finalize-button:hover {
+    background-color: var(--rose-dark);
 }
 
-.finalize-button:active {
-    transform: translateY(0);
+/* Disabled state for all buttons */
+.analyze-button:disabled,
+.compare-button:disabled,
+.export-button:disabled,
+.contribution-button:disabled,
+.finalize-button:disabled {
+    background-color: var(--rose-light);
+    cursor: not-allowed;
 }
 
 .contribution-location {
@@ -291,5 +307,17 @@ textarea:focus {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
+}
+
+.my-contribution {
+    background: #f0f7ff;  /* Light blue background */
+    border-left: 3px solid #0070f3;  /* Blue accent */
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.my-contribution p {
+    color: #2c5282;  /* Darker blue text */
 }
 

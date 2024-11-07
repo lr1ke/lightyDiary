@@ -474,13 +474,15 @@ const EntryForm = () => {
 
             <div className="entries-section">
                 <h2>My Entries</h2>
-                {myEntries.map(entry => {
-                    console.log('Entry timestamp:', entry.timestamp, typeof entry.timestamp);
-                    const date = new Date(Number(entry.timestamp) * 1000);
-                    console.log('Converted date:', date);
-                    
-                    return (
-                        <div key={entry.id} className={`entry ${entry.isCollaborative ? 'collaborative' : ''}`}>
+                
+                {/* Add DiaryAnalysis at the top of My Entries section */}
+                {myEntries.length > 0 && (
+                    <DiaryAnalysis entries={myEntries} />
+                )}
+
+                {myEntries.map(entry => (
+                    <div key={entry.id} className="entry-container">
+                        <div className="entry">
                             <div className="entry-header">
                                 <div className="entry-title">
                                     <span className="entry-type-tag">
@@ -493,7 +495,7 @@ const EntryForm = () => {
                                     )}
                                 </div>
                                 <span className="entry-status">
-                                    {entry.isCollaborative && (entry.isFinalized ? '✅ Finalized' : ' Open for contributions')}
+                                    {entry.isCollaborative && (entry.isFinalized ? '✅ Finalized' : '🔓 Open for contributions')}
                                 </span>
                             </div>
                             <p className="entry-content">{entry.content}</p>
@@ -506,13 +508,54 @@ const EntryForm = () => {
                                     <small 
                                         className="contribution-location clickable"
                                         onClick={() => setExpandedLocation(expandedLocation === entry.id ? null : entry.id)}
-                                        title="Click to expand/collapse"
                                     >
                                         📍 {expandedLocation === entry.id ? entry.location : `${entry.location.slice(0, 15)}...`}
                                     </small>
                                 )}
                             </div>
-                            
+
+                            {/* Show contributions if it's a collaborative entry */}
+                            {entry.isCollaborative && entryContributions[entry.id]?.map((contribution, index) => {
+                                if (contribution.contributor.toLowerCase() === userAddress.toLowerCase()) {
+                                    return (
+                                        <div key={`${entry.id}-${index}`} className="contribution">
+                                            <div className="entry-header">
+                                                <div className="entry-title">
+                                                    <span className="entry-type-tag">💭 My Contribution</span>
+                                                </div>
+                                            </div>
+                                            <p className="entry-content">{contribution.content}</p>
+                                            <div className="entry-metadata">
+                                                <div className="contributor-address">
+                                                    <span className="address-label">Contributor:</span>
+                                                    <span 
+                                                        className="address-value clickable"
+                                                        onClick={() => setExpandedAddress(expandedAddress === contribution.contributor ? null : contribution.contributor)}
+                                                    >
+                                                        {expandedAddress === contribution.contributor 
+                                                            ? contribution.contributor
+                                                            : `${contribution.contributor.slice(0, 5)}...`}
+                                                    </span>
+                                                </div>
+                                                <small>
+                                                    On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
+                                                </small>
+                                                {contribution.location && (
+                                                    <small 
+                                                        className="contribution-location clickable"
+                                                        onClick={() => setExpandedLocation(expandedLocation === `${entry.id}-${index}` ? null : `${entry.id}-${index}`)}
+                                                    >
+                                                        📍 {expandedLocation === `${entry.id}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
+                                                    </small>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })}
+
+                            {/* Add Finalize button for collaborative entries */}
                             {entry.isCollaborative && 
                              !entry.isFinalized && 
                              entry.owner.toLowerCase() === userAddress.toLowerCase() && (
@@ -522,17 +565,13 @@ const EntryForm = () => {
                                         className="finalize-button"
                                         disabled={loading}
                                     >
-                                        {loading ? 'Finalizing...' : 'Finalize Entry'}
+                                        {loading ? 'Finalizing...' : 'Finalize Thread'}
                                     </button>
                                 </div>
                             )}
                         </div>
-                    );
-                })}
-
-                {myEntries.length > 0 && (
-                    <DiaryAnalysis entries={myEntries} />
-                )}
+                    </div>
+                ))}
             </div>
 
             <div className="entries-section">
@@ -634,7 +673,6 @@ const EntryForm = () => {
                                         contributions={entryContributions[entry.id] || []}
                                         theme={entry.title}
                                     />
-                                    console.log('Rendering CollaborativeAnalysis for entry:', entry.id, entry.title);
                                 </div>
                             )}
                         </div>
