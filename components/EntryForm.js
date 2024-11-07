@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ethers } from 'ethers';
 import DiaryContract from '../artifacts/contracts/DiaryContract.sol/DiaryContract.json';
 import '../styles/EntryForm.css';
@@ -32,47 +32,71 @@ const EntryForm = () => {
     useEffect(() => {
         const initContract = async () => {
             try {
-                console.log('Contract ABI:', DiaryContract.abi);
-                
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                // Check if MetaMask is installed
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('Please install MetaMask');
+                }
+
+                // Request account access and switch to Sepolia
+                await window.ethereum.request({ 
+                    method: 'eth_requestAccounts'
+                });
+
+                // Switch to Sepolia if needed
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: '0xaa36a7' }], // Sepolia chainId
+                    });
+                } catch (switchError) {
+                    console.error('Error switching network:', switchError);
+                }
+
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 const signer = await provider.getSigner();
+                const address = await signer.getAddress();
                 
-                const contractAddress = '0x02C4bCE808937Ef2Ace44F89557Bb8cD217D3473';
-                console.log('Contract address:', contractAddress);
-                
+                console.log('Connected wallet address:', address); // Debug log
+
+                setUserAddress(address);
+
                 const contractInstance = new ethers.Contract(
-                    contractAddress,
+                    process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
                     DiaryContract.abi,
                     signer
                 );
-                
-                console.log('Contract instance created');
-                
-                try {
-                    const count = await contractInstance.entryCount();
-                    setEntryCount(Number(count));
-                    console.log('Entry count:', Number(count));
-                } catch (err) {
-                    console.error('Error calling entryCount:', err);
-                }
-                
+
                 setContract(contractInstance);
-                
-                try {
-                    await loadEntries(contractInstance);
-                    await loadMyContributions(contractInstance);
-                } catch (err) {
-                    console.error('Error in loadEntries:', err);
-                }
+
+                // Load entries after connection
+                await loadEntries(contractInstance);
+                await loadMyContributions(contractInstance);
             } catch (error) {
-                console.error('Error initializing contract:', error);
-            } finally {
-                setLoading(false);
+                console.error('Error initializing:', error);
             }
         };
 
         initContract();
+    }, []);
+
+    // Add wallet address listener
+    useEffect(() => {
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length > 0) {
+                    setUserAddress(accounts[0]);
+                    initContract(); // Reinitialize with new account
+                } else {
+                    setUserAddress(null);
+                }
+            });
+        }
+
+        return () => {
+            if (window.ethereum) {
+                window.ethereum.removeListener('accountsChanged', () => {});
+            }
+        };
     }, []);
 
     useEffect(() => {
@@ -389,20 +413,32 @@ const EntryForm = () => {
         return [...new Set([...ownedEntries, ...contributedEntries])];
     }, [allEntries, entryContributions, userAddress]);
 
+    const filterMyEntries = useCallback((entries) => {
+        if (!userAddress) return [];
+        return entries.filter(entry => 
+            entry.owner.toLowerCase() === userAddress.toLowerCase()
+        );
+    }, [userAddress]);
+
     useEffect(() => {
-        const getUserAddress = async () => {
-            if (window?.ethereum) {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                setUserAddress(accounts[0].toLowerCase());
-            }
-        };
-        getUserAddress();
-    }, []);
+        if (entries && userAddress) {
+            const filtered = filterMyEntries(entries);
+            setMyEntries(filtered);
+            console.log('My filtered entries:', filtered); // Debug log
+        }
+    }, [entries, userAddress, filterMyEntries]);
 
     if (loading) return <div>Loading...</div>;
 
     return (
         <div className="container">
+            <div className="wallet-status">
+                {userAddress ? (
+                    <p>Connected: {userAddress.slice(0, 6)}...{userAddress.slice(-4)}</p>
+                ) : (
+                    <button onClick={initContract}>Connect Wallet</button>
+                )}
+            </div>
             <div className="stats">
                 <p>Total Entries: {entryCount}</p>
                 <p>My Entries: {myEntries.length}</p>
