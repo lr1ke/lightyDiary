@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Decentralized Diary DApp
+
+A blockchain-based diary application where users can create personal entries and collaborate on shared stories. Live at: https://diary-app-tau.vercel.app/
+
+## About
+
+This decentralized diary application allows users to record their thoughts and experiences on the blockchain while enabling collaborative storytelling. Built on Ethereum (Sepolia testnet), it combines personal journaling with social interaction in a decentralized manner. The app provides AI tools for sentiment analysis, topic extraction, and thematic insights. It should help users get a deeper understanding of writing patterns, location dependence of thoughts and shared narratives.
+
+### Key Features
+- 📝 Personal diary entries stored on the blockchain
+- 👥 Collaborative story threads where multiple users can contribute
+- 🎤 Voice-to-text entry support
+- 📍 Location tagging for entries
+- 📊 Analysis of entry patterns and collaborative contributions
+- 🔒 Entry finalization for collaborative threads
+- 🌐 Global and personal entry views
+
+## Prerequisites
+
+- Google Chrome browser 
+- MetaMask wallet extension 
+- Some Sepolia ETH for transaction fees
 
 ## Getting Started
 
-First, run the development server:
+1. Visit https://diary-app-tau.vercel.app/
+2. Connect your MetaMask wallet when prompted
+3. Ensure you're connected to Sepolia testnet
+4. Get some Sepolia ETH from [Sepolia Faucet](https://sepoliafaucet.com/)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Running Locally
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. Clone the repository: `git clone [https://github.com/lr1ke/Diary-App/]`
+2. Install dependencies: `npm install`
+3. Compile the smart contracts: `npx hardhat compile`
+4. Start the development server: `npm run dev`
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Technical Requirements
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Chrome browser
+- MetaMask wallet
+- Sepolia network configuration in MetaMask
+- Sepolia ETH for gas fees
 
-## Learn More
+## Network Details
 
-To learn more about Next.js, take a look at the following resources:
+- Network: Sepolia Testnet
+- Contract Address: 0x02C4bCE808937Ef2Ace44F89557Bb8cD217D3473
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Support
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+If you need Sepolia ETH, you can get it from:
+- [Sepolia Faucet](https://faucets.chain.link/sepolia)
+- [Alchemy Sepolia Faucet](https://sepoliafaucet.com/)
