@@ -17,8 +17,7 @@ This decentralized diary application allows users to record their thoughts and e
 
 ## Prerequisites
 
-- Google Chrome browser 
-- MetaMask wallet extension 
+- Browser with MetaMask wallet extension (Chrome, Brave,...)
 - Some Sepolia ETH for transaction fees
 
 ## Getting Started
@@ -37,7 +36,6 @@ This decentralized diary application allows users to record their thoughts and e
 
 ## Technical Requirements
 
-- Chrome browser
 - MetaMask wallet
 - Sepolia network configuration in MetaMask
 - Sepolia ETH for gas fees
