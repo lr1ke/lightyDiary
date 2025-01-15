@@ -53,7 +53,7 @@ const CreateComp = () => {
                     await loadEntries(contractInstance);
                     await loadMyContributions(contractInstance);
                 } catch (err) {
-                    console.error('Error in loadEntries:', err);
+                    console.error('Error in load Entries:', err);
                 }
             } catch (error) {
                 console.error('Error initializing contract:', error);

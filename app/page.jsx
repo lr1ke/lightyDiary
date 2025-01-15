@@ -30,23 +30,22 @@ export default function Page() {
             <span>Log in</span> <ArrowRightIcon className="w-5 md:w-6" />
           </Link>
         </div>
-        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
+        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12 bg-red-900">
           {/* Add Hero Images Here */}
-          {/* <Image
-            src="/croc.jpeg"
-            width={1000}
-            height={760}
+           {/* <Image
+            src="/galaxy.jpg"
+            width={2600}
+            height={2120}
             className="hidden md:block"
             alt="Screenshot of the dashboard project showing destop version"
             />
           <Image
-          src="/croc.jpeg"
+          src="/galaxy.jpg"
           width={560}
           height={620}
           className="block md:hidden "
           alt="Screenshot of the dasboard showing mobile version"
-
-          /> */}
+          />  */}
 
         </div>
       </div>
