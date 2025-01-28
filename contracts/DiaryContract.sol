@@ -29,6 +29,8 @@ contract DiaryContract {
     event ContributionAdded(uint256 indexed entryId, address indexed contributor, string content);
     event EntryFinalized(uint256 indexed entryId);
 
+    
+
     function createEntry(string memory content, string memory location) public {
         entries.push(Entry({
             id: entryCount,

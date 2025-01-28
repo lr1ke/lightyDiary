@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ethers } from 'ethers';
 import DiaryContract from '../artifacts/contracts/DiaryContract.sol/DiaryContract.json';
 import '../styles/EntryForm.css';
+import { useContract } from '@/context/ContractContext';
+
 
 
 
@@ -9,7 +11,6 @@ import '../styles/EntryForm.css';
 const CreateComp = () => {
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
-    const [contract, setContract] = useState(null);
     const [loading, setLoading] = useState(true);
     const [entryCount, setEntryCount] = useState(0);
     const [isCollaborative, setIsCollaborative] = useState(false);
@@ -19,51 +20,10 @@ const CreateComp = () => {
     const [isListening, setIsListening] = useState(false);
     const [recognition, setRecognition] = useState(null);
 
-    useEffect(() => {
-        const initContract = async () => {
-            try {
-                console.log('Contract ABI:', DiaryContract.abi);
-                
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                const signer = await provider.getSigner();
-                
-                const contractAddress = '0x02C4bCE808937Ef2Ace44F89557Bb8cD217D3473';
-                console.log('Contract address:', contractAddress);
-                
-                const contractInstance = new ethers.Contract(
-                    contractAddress,
-                    DiaryContract.abi,
-                    signer
-                );
-                
-                console.log('Contract instance created');
-                
-                try {
-                    const count = await contractInstance.entryCount();
-                    setEntryCount(Number(count));
-                    console.log('Entry count:', Number(count));
-                } catch (err) {
-                    console.error('Error calling entryCount:', err);
-                }
-                
-                setContract(contractInstance);
-                
-                try {
-                    await loadEntries(contractInstance);
-                    await loadMyContributions(contractInstance);
-                } catch (err) {
-                    console.error('Error in load Entries:', err);
-                }
-            } catch (error) {
-                console.error('Error initializing contract:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const  contract  = useContract();
+    const [globalEntryCount, setGlobalEntryCount] = useState(0);
+  
 
-        initContract();
-    }, []);
 
     useEffect(() => {
         if ('webkitSpeechRecognition' in window) {
@@ -158,6 +118,8 @@ const CreateComp = () => {
             );
         });
     };
+
+    
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {

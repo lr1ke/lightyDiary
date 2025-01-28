@@ -1,5 +1,8 @@
 import localFont from "next/font/local";
 import { inter } from '@/app/ui/fonts';
+import React from 'react';
+import { ContractProvider } from '@/context/ContractContext';
+
 
 import "./globals.css";
 
@@ -25,7 +28,9 @@ export default function RootLayout({ children }) {
             <body 
             // className={`${inter.className} antialiased`}>{children}
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+          <ContractProvider>
+            {children}
+          </ContractProvider>
       </body>
     </html>
   );

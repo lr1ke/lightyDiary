@@ -1,19 +1,15 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
-import { ethers } from 'ethers';
-import DiaryContract from '../artifacts/contracts/DiaryContract.sol/DiaryContract.json';
 import '../styles/EntryForm.css';
 import CollaborativeAnalysis from './CollaborativeAnalysis';
-
-
+import { useContract } from '@/context/ContractContext';
 
 
 const CollabComp = () => {
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
-    const [contract, setContract] = useState(null);
     const [allEntries, setAllEntries] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [entryCount, setEntryCount] = useState(0);
     const [isCollaborative, setIsCollaborative] = useState(false);
     const [contributionContent, setContributionContent] = useState('');
     const [entryContributions, setEntryContributions] = useState({});
@@ -24,62 +20,25 @@ const CollabComp = () => {
     const [expandedAddress, setExpandedAddress] = useState(null);
     const [expandedLocation, setExpandedLocation] = useState(null);
     const [userAddress, setUserAddress] = useState('');
+    const [globalEntryCount, setGlobalEntryCount] = useState(0);
 
-    useEffect(() => {
-        const initContract = async () => {
-            try {
-                console.log('Contract ABI:', DiaryContract.abi);
-                
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                const signer = await provider.getSigner();
-                
-                const contractAddress = '0x02C4bCE808937Ef2Ace44F89557Bb8cD217D3473';
-                console.log('Contract address:', contractAddress);
-                
-                const contractInstance = new ethers.Contract(
-                    contractAddress,
-                    DiaryContract.abi,
-                    signer
-                );
-                
-                console.log('Contract instance created');
-                
-                try {
-                    const count = await contractInstance.entryCount();
-                    setEntryCount(Number(count));
-                    console.log('Entry count:', Number(count));
-                } catch (err) {
-                    console.error('Error calling entryCount:', err);
-                }
-                
-                setContract(contractInstance);
-                
-                try {
-                    await loadEntries(contractInstance);
-                    await loadMyContributions(contractInstance);
-                } catch (err) {
-                    console.error('Error in loadEntries:', err);
-                }
-            } catch (error) {
-                console.error('Error initializing contract:', error);
-            } finally {
-                setLoading(false);
+    const  contract  = useContract();
+
+
+
+        useEffect(() => {
+        const loadEntries = async () => {
+            if (!contract) {
+                console.log("Contract is not initialized yet.");
+                return;
             }
-        };
-
-        initContract();
-    }, []);
-
-
-    const loadEntries = async (contractInstance) => {
         try {
             console.log('Loading entries...');
             
-            const myEntriesResult = await contractInstance.getMyEntries();
+            const myEntriesResult = await contract.getMyEntries();
             console.log('My entries loaded:', myEntriesResult);
             
-            const allEntriesResult = await contractInstance.getAllEntries();
+            const allEntriesResult = await contract.getAllEntries();
             console.log('All entries loaded:', allEntriesResult);
 
             const formatEntries = (entries) => 
@@ -101,7 +60,7 @@ const CollabComp = () => {
             
             for (const entry of formattedEntries) {
                 if (entry.isCollaborative) {
-                    await loadContributions(entry.id, contractInstance);
+                    await loadContributions(entry.id, contract);
                 }
             }
         } catch (error) {
@@ -109,10 +68,15 @@ const CollabComp = () => {
             throw error;
         }
     };
+    loadEntries();
+}, [contract]);
 
-    const loadContributions = async (entryId, contractInstance) => {
+
+    
+    useEffect(() => {
+    const loadContributions = async (entryId, contract) => {
         try {
-            const contributions = await contractInstance.getEntryContributions(entryId);
+            const contributions = await contract.getEntryContributions(entryId);
             console.log('Raw contributions data:', {
                 contributions,
                 type: typeof contributions,
@@ -138,14 +102,17 @@ const CollabComp = () => {
                 [entryId]: formattedContributions
             }));
         } catch (error) {
-            console.error('Error in loadContributions:', error);
-            console.error('Error details:', {
+            console.log('Error in loadContributions:', error);
+            console.log('Error details:', {
                 message: error.message,
                 code: error.code,
                 data: error.data
             });
         }
     };
+    loadContributions();
+}, [contract]);
+
 
     const getLocation = () => {
         if (!navigator.geolocation) {
@@ -190,6 +157,7 @@ const CollabComp = () => {
             );
         });
     };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -284,16 +252,16 @@ const CollabComp = () => {
         }
     };
 
-    const loadMyContributions = async (contractInstance) => {
+    const loadMyContributions = async (contract) => {
         try {
             if (!userAddress) return;
             
-            const allEntries = await contractInstance.getAllEntries();
+            const allEntries = await contract.getAllEntries();
             const contributionsMap = {};
 
             for (const entry of allEntries) {
                 if (entry.isCollaborative) {
-                    const contributions = await contractInstance.getEntryContributions(entry.id);
+                    const contributions = await contract.getEntryContributions(entry.id);
                     const myContributionsToEntry = Array.from(contributions).filter(
                         contribution => contribution.contributor.toLowerCase() === userAddress
                     );
@@ -316,6 +284,7 @@ const CollabComp = () => {
             console.error('Error loading my contributions:', error);
         }
     };
+  
 
     const myEntries = useMemo(() => {
         if (!userAddress) return [];
@@ -347,14 +316,9 @@ const CollabComp = () => {
         getUserAddress();
     }, []);
 
-    if (loading) return <div>Loading...</div>;
 
     return (
         <div className="container">
-
-
-
-
             <div className="entries-section">
                 <h2>Collaborative Threads</h2>
                 

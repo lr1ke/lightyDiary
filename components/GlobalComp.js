@@ -1,80 +1,23 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ethers } from 'ethers';
-import DiaryContract from '../artifacts/contracts/DiaryContract.sol/DiaryContract.json';
 import '../styles/EntryForm.css';
 import GlobalEntriesAnalysis from './GlobalEntriesAnalysis';
-
-
+import { useContract } from '@/context/ContractContext';
 
 
 const GlobalComp = () => {
-    const [contract, setContract] = useState(null);
     const [allEntries, setAllEntries] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [entryCount, setEntryCount] = useState(0);
     const [entryContributions, setEntryContributions] = useState({});
     const [error, setError] = useState('');
     const [expandedAddress, setExpandedAddress] = useState(null);
     const [expandedLocation, setExpandedLocation] = useState(null);
+    const [collaborativeEntries, setCollaborativeEntries] = useState([]);
+    const [nonCollabEntries, setNonCollabEntries] = useState([]);
 
-    useEffect(() => {
-        const initContract = async () => {
-            try {
-                console.log('Contract ABI:', DiaryContract.abi);
-                
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                const signer = await provider.getSigner();
-                
-                const contractAddress = '0x02C4bCE808937Ef2Ace44F89557Bb8cD217D3473';
-                console.log('Contract address:', contractAddress);
-                
-                const contractInstance = new ethers.Contract(
-                    contractAddress,
-                    DiaryContract.abi,
-                    signer
-                );
-                
-                console.log('Contract instance created');
-                
-                try {
-                    const count = await contractInstance.entryCount();
-                    setEntryCount(Number(count));
-                    console.log('Entry count:', Number(count));
-                } catch (err) {
-                    console.error('Error calling entryCount:', err);
-                }
-                
-                setContract(contractInstance);
-                
-                try {
-                    await loadEntries(contractInstance);
-                    await loadMyContributions(contractInstance);
-                } catch (err) {
-                    console.error('Error in loadEntries:', err);
-                }
-            } catch (error) {
-                console.error('Error initializing contract:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        initContract();
-    }, []);
+    const  contract  = useContract();
 
 
-    const loadEntries = async (contractInstance) => {
-        try {
-            console.log('Loading entries...');
-            
-            const myEntriesResult = await contractInstance.getMyEntries();
-            console.log('My entries loaded:', myEntriesResult);
-            
-            const allEntriesResult = await contractInstance.getAllEntries();
-            console.log('All entries loaded:', allEntriesResult);
 
-            const formatEntries = (entries) => 
+    const formatEntries = (entries) => 
                 entries.map(entry => ({
                     id: Number(entry.id),
                     title: entry.title,
@@ -87,133 +30,59 @@ const GlobalComp = () => {
                 }))
                 .sort((a, b) => b.id - a.id);
 
-            const formattedEntries = formatEntries(allEntriesResult);
-            console.log('Formatted entries with location:', formattedEntries);
-            setAllEntries(formattedEntries);
-            
-            for (const entry of formattedEntries) {
-                if (entry.isCollaborative) {
-                    await loadContributions(entry.id, contractInstance);
-                }
+
+
+
+    useEffect(() => {
+        const loadEntries = async () => {
+            if (!contract) {
+                console.log("Contract is not initialized yet.");
+                return;
             }
-        } catch (error) {
-            console.error('Error in loadEntries:', error);
-            throw error;
-        }
-    };
 
-    const loadContributions = async (entryId, contractInstance) => {
-        try {
-            const contributions = await contractInstance.getEntryContributions(entryId);
-            console.log('Raw contributions data:', {
-                contributions,
-                type: typeof contributions,
-                isArray: Array.isArray(contributions),
-                length: contributions.length
-            });
-            
-            // Convert the Proxy Result to a regular array and format each contribution
-            const formattedContributions = Array.from(contributions).map(contribution => {
-                console.log('Single contribution:', contribution);
-                return {
-                    contributor: contribution.contributor,
-                    content: contribution.content,
-                    timestamp: Number(contribution.timestamp),
-                    location: contribution.location
-                };
-            });
-            
-            console.log('Formatted contributions:', formattedContributions);
-            
-            setEntryContributions(prev => ({
-                ...prev,
-                [entryId]: formattedContributions
-            }));
-        } catch (error) {
-            console.error('Error in loadContributions:', error);
-            console.error('Error details:', {
-                message: error.message,
-                code: error.code,
-                data: error.data
-            });
-        }
-    };
+            try {
+                // Get all entries
+                const allEntries = await contract.getAllEntries();
+                const allEntriesResult = await formatEntries(allEntries);
+                setAllEntries(allEntriesResult);
+
+                // Filter all non-collaborative entries
+                const allNonCollab = await allEntriesResult.filter(entry => !entry.isCollaborative);
+                const allNonCollabEntries = await formatEntries(allNonCollab);
+                setNonCollabEntries(allNonCollabEntries);
 
 
+                // Filter collaborative entries
+                const collaborativeEntries = allEntriesResult.filter(entry => entry.isCollaborative);
+                const collaborativeEntriesResult = formatEntries(collaborativeEntries);
+                setCollaborativeEntries(collaborativeEntriesResult);
 
-    // const loadMyContributions = async (contractInstance) => {
-    //     try {
-    //         if (!userAddress) return;
-            
-    //         const allEntries = await contractInstance.getAllEntries();
-    //         const contributionsMap = {};
+                // Get contributions for each collaborative entry
+                for (const entry of collaborativeEntriesResult) {
+                    const contributionsAll = await contract.getEntryContributions(entry.id);
+                    const contributions = await formatEntries(contributionsAll);
+                    setEntryContributions(prev => ({
+                        ...prev,
+                        [entry.id]: contributions
+                    }));
+                }
+            } catch (error) {
+                console.error('Error loading entries and contributions:', error);
+            }
+        };
 
-    //         for (const entry of allEntries) {
-    //             if (entry.isCollaborative) {
-    //                 const contributions = await contractInstance.getEntryContributions(entry.id);
-    //                 const myContributionsToEntry = Array.from(contributions).filter(
-    //                     contribution => contribution.contributor.toLowerCase() === userAddress
-    //                 );
+        loadEntries();
+    }, [contract]);
 
-    //                 if (myContributionsToEntry.length > 0) {
-    //                     contributionsMap[entry.id] = {
-    //                         entryTitle: entry.title,
-    //                         contributions: myContributionsToEntry.map(contribution => ({
-    //                             content: contribution.content,
-    //                             timestamp: Number(contribution.timestamp),
-    //                             location: contribution.location
-    //                         }))
-    //                     };
-    //                 }
-    //             }
-    //         }
-            
-    //         setMyContributions(contributionsMap);
-    //     } catch (error) {
-    //         console.error('Error loading my contributions:', error);
-    //     }
-    // };
 
-    // const myEntries = useMemo(() => {
-    //     if (!userAddress) return [];
-        
-    //     // Get regular entries owned by the user
-    //     const ownedEntries = allEntries.filter(entry => 
-    //         entry.owner.toLowerCase() === userAddress
-    //     );
-        
-    //     // Get entries where the user has contributed
-    //     const contributedEntries = allEntries.filter(entry => {
-    //         const entryContribs = entryContributions[entry.id] || [];
-    //         return entryContribs.some(contrib => 
-    //             contrib.contributor.toLowerCase() === userAddress
-    //         );
-    //     });
-        
-    //     // Combine and remove duplicates
-    //     return [...new Set([...ownedEntries, ...contributedEntries])];
-    // }, [allEntries, entryContributions, userAddress]);
-
-    // useEffect(() => {
-    //     const getUserAddress = async () => {
-    //         if (window?.ethereum) {
-    //             const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    //             setUserAddress(accounts[0].toLowerCase());
-    //         }
-    //     };
-    //     getUserAddress();
-    // }, []);
-
-    if (loading) return <div>Loading...</div>;
 
     return (
+<>
+
+
+
+
         <div className="container">
-            {/* <div className="stats">
-                <p>All Entries: {allEntries.length}</p>
-            </div> */}
-
-
-
             <div className="entries-section">
                 <h2>All Entries</h2>
                 
@@ -265,15 +134,15 @@ const GlobalComp = () => {
                                         <div className="contribution-metadata">
                                             <div className="contributor-address">
                                                 <span className="address-label">Contributor:</span>
-                                                <span 
+                                                {/* <span 
                                                     className="address-value clickable"
-                                                    onClick={() => setExpandedAddress(expandedAddress === contribution.contributor ? null : contribution.contributor)}
+                                                    onClick={() => setExpandedAddress(expandedAddress === contribution.contributer ? null : contribution.contributer)}
                                                     title="Click to expand/collapse"
                                                 >
-                                                    {expandedAddress === contribution.contributor 
-                                                        ? contribution.contributor
+                                                    {expandedAddress === contribution.contributer
+                                                        ? contribution.contributer
                                                         : `${contribution.contributor.slice(0, 5)}...`}
-                                                </span>
+                                                </span> */}
                                             </div>
                                             <small>
                                                 On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
@@ -297,6 +166,32 @@ const GlobalComp = () => {
             </div>
             {error && <div className="error-message">{error}</div>}
         </div>
+
+{/* Variante in Darstellung als Fließtext ohne metadata */}
+        <div>
+        <h1>All single Entries</h1>
+        <h3>singel</h3>
+        {nonCollabEntries.map(entry => (
+            <div key={entry.id}>
+                <p>{entry.content}</p>
+            </div>
+        ))}
+        <h1>Collaborative</h1>
+        {collaborativeEntries.map(entry => (
+            <div key={entry.id}>
+                <h2>{entry.title}</h2>
+                <p>{entry.content}</p>
+                {/* <h3>Contributions:</h3> */}
+                {(entryContributions[entry.id] || []).map((contribution, index) => (
+                    <div key={index}>
+                        <p>{contribution.content}</p>
+                    </div>
+                ))}
+            </div>
+        ))}
+        </div>
+
+        </>
     );
 };
 

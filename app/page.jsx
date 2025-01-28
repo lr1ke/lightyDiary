@@ -20,7 +20,7 @@ export default function Page() {
           <p className={`${lusitana.className} text-xl text-gray-800 md:text-3xl md:leading-normal`}>
             <strong>Welcome to Kiez Diary.</strong> This is a collective diary, a collaborative writing experiment, 
             a fully decentralized journaling interface, 
-              an inquiry what's behind the slogan <a href="  https://direct.mit.edu/books/edited-volume/4698/chapter-abstract/215211/Words-Works-Worlds?redirectedFrom=PDF " className="text-blue-500"> "words,works,worlds" </a> 
+              an inquiry what's behind the slogan <a href="  https://direct.mit.edu/books/edited-volume/4698/chapter-abstract/215211/Words-Works-Worlds?redirectedFrom=PDF " className="text-gray-300"> "words,works,worlds" </a> 
               and a what if the stars were made by us? 
           </p>
           <Link

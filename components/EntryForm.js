@@ -37,7 +37,6 @@ const EntryForm = () => {
                 await window.ethereum.request({ method: 'eth_requestAccounts' });
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 const signer = await provider.getSigner();
-                
                 const contractAddress = '0x02C4bCE808937Ef2Ace44F89557Bb8cD217D3473';
                 console.log('Contract address:', contractAddress);
                 

@@ -1,90 +1,30 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ethers } from 'ethers';
-import DiaryContract from '../artifacts/contracts/DiaryContract.sol/DiaryContract.json';
 import '../styles/EntryForm.css';
+import { useContract } from '@/context/ContractContext';
 import DiaryAnalysis from './DiaryAnalysis';
-import CollaborativeAnalysis from './CollaborativeAnalysis';
-import GlobalEntriesAnalysis from './GlobalEntriesAnalysis';
-
-
 
 
 const PersonalComp = () => {
-    const [content, setContent] = useState('');
-    const [title, setTitle] = useState('');
-    const [contract, setContract] = useState(null);
     const [allEntries, setAllEntries] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [entryCount, setEntryCount] = useState(0);
-    const [isCollaborative, setIsCollaborative] = useState(false);
-    const [contributionContent, setContributionContent] = useState('');
     const [entryContributions, setEntryContributions] = useState({});
-    const [error, setError] = useState('');
-    const [location, setLocation] = useState('');
-    const [locationError, setLocationError] = useState('');
     const [myContributions, setMyContributions] = useState({});
     const [expandedAddress, setExpandedAddress] = useState(null);
     const [expandedLocation, setExpandedLocation] = useState(null);
-    const [isListening, setIsListening] = useState(false);
-    const [recognition, setRecognition] = useState(null);
     const [userAddress, setUserAddress] = useState('');
 
+    const contract = useContract();
+
+
     useEffect(() => {
-        const initContract = async () => {
-            try {
-                console.log('Contract ABI:', DiaryContract.abi);
-                
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
-                const provider = new ethers.BrowserProvider(window.ethereum);
-                const signer = await provider.getSigner();
-                
-                const contractAddress = '0x02C4bCE808937Ef2Ace44F89557Bb8cD217D3473';
-                console.log('Contract address:', contractAddress);
-                
-                const contractInstance = new ethers.Contract(
-                    contractAddress,
-                    DiaryContract.abi,
-                    signer
-                );
-                
-                console.log('Contract instance created');
-                
-                try {
-                    const count = await contractInstance.entryCount();
-                    setEntryCount(Number(count));
-                    console.log('Entry count:', Number(count));
-                } catch (err) {
-                    console.error('Error calling entryCount:', err);
-                }
-                
-                setContract(contractInstance);
-                
-                try {
-                    await loadEntries(contractInstance);
-                    await loadMyContributions(contractInstance);
-                } catch (err) {
-                    console.error('Error in loadEntries:', err);
-                }
-            } catch (error) {
-                console.error('Error initializing contract:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        initContract();
-    }, []);
-
-
-
-    const loadEntries = async (contractInstance) => {
+    const loadEntries = async () => {
         try {
             console.log('Loading entries...');
             
-            const myEntriesResult = await contractInstance.getMyEntries();
+            const myEntriesResult = await contract.getMyEntries();
             console.log('My entries loaded:', myEntriesResult);
             
-            const allEntriesResult = await contractInstance.getAllEntries();
+            const allEntriesResult = await contract.getAllEntries();
             console.log('All entries loaded:', allEntriesResult);
 
             const formatEntries = (entries) => 
@@ -106,28 +46,30 @@ const PersonalComp = () => {
             
             for (const entry of formattedEntries) {
                 if (entry.isCollaborative) {
-                    await loadContributions(entry.id, contractInstance);
+                    await loadContributions(entry.id);
                 }
             }
         } catch (error) {
-            console.error('Error in loadEntries:', error);
+            console.log('Error in loadEntries:', error);
             throw error;
         }
     };
+    loadEntries();
+}, [contract]);
 
 
  
-
-    const loadMyContributions = async (contractInstance) => {
+    useEffect(() => {
+    const loadMyContributions = async (contract) => {
         try {
             if (!userAddress) return;
             
-            const allEntries = await contractInstance.getAllEntries();
+            const allEntries = await contract.getAllEntries();
             const contributionsMap = {};
 
             for (const entry of allEntries) {
                 if (entry.isCollaborative) {
-                    const contributions = await contractInstance.getEntryContributions(entry.id);
+                    const contributions = await contract.getEntryContributions(entry.id);
                     const myContributionsToEntry = Array.from(contributions).filter(
                         contribution => contribution.contributor.toLowerCase() === userAddress
                     );
@@ -150,6 +92,10 @@ const PersonalComp = () => {
             console.error('Error loading my contributions:', error);
         }
     };
+    loadMyContributions();
+}, [contract]);
+
+
 
     const myEntries = useMemo(() => {
         if (!userAddress) return [];
@@ -171,6 +117,7 @@ const PersonalComp = () => {
         return [...new Set([...ownedEntries, ...contributedEntries])];
     }, [allEntries, entryContributions, userAddress]);
 
+
     useEffect(() => {
         const getUserAddress = async () => {
             if (window?.ethereum) {
@@ -181,7 +128,6 @@ const PersonalComp = () => {
         getUserAddress();
     }, []);
 
-    if (loading) return <div>Loading...</div>;
 
     return (
         <div className="container">
