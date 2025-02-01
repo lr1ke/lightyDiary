@@ -6,75 +6,65 @@ import { useContract } from '@/context/ContractContext';
 
 
 const CollabComp = () => {
-    const [content, setContent] = useState('');
-    const [title, setTitle] = useState('');
     const [allEntries, setAllEntries] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [isCollaborative, setIsCollaborative] = useState(false);
     const [contributionContent, setContributionContent] = useState('');
     const [entryContributions, setEntryContributions] = useState({});
     const [error, setError] = useState('');
     const [location, setLocation] = useState('');
     const [locationError, setLocationError] = useState('');
-    const [myContributions, setMyContributions] = useState({});
     const [expandedAddress, setExpandedAddress] = useState(null);
     const [expandedLocation, setExpandedLocation] = useState(null);
     const [userAddress, setUserAddress] = useState('');
-    const [globalEntryCount, setGlobalEntryCount] = useState(0);
 
     const  contract  = useContract();
 
 
-
-        useEffect(() => {
+    
         const loadEntries = async () => {
             if (!contract) {
                 console.log("Contract is not initialized yet.");
                 return;
             }
-        try {
-            console.log('Loading entries...');
-            
-            const myEntriesResult = await contract.getMyEntries();
-            console.log('My entries loaded:', myEntriesResult);
-            
-            const allEntriesResult = await contract.getAllEntries();
-            console.log('All entries loaded:', allEntriesResult);
-
-            const formatEntries = (entries) => 
-                entries.map(entry => ({
-                    id: Number(entry.id),
-                    title: entry.title,
-                    content: entry.content,
-                    owner: entry.owner,
-                    timestamp: Number(entry.timestamp),
-                    isCollaborative: entry.isCollaborative,
-                    isFinalized: entry.isFinalized,
-                    location: entry.location
-                }))
-                .sort((a, b) => b.id - a.id);
-
-            const formattedEntries = formatEntries(allEntriesResult);
-            console.log('Formatted entries with location:', formattedEntries);
-            setAllEntries(formattedEntries);
-            
-            for (const entry of formattedEntries) {
-                if (entry.isCollaborative) {
-                    await loadContributions(entry.id, contract);
-                }
-            }
-        } catch (error) {
-            console.error('Error in loadEntries:', error);
-            throw error;
-        }
-    };
-    loadEntries();
-}, [contract]);
-
-
+            try {
+                const allEntries = await contract.getAllEntries();
+                let array = []; 
     
-    useEffect(() => {
-    const loadContributions = async (entryId, contract) => {
+                for (const entry of allEntries) {
+                    if (entry.isCollaborative) {
+                        array.push(entry); 
+                    }
+                
+    
+                const formattedEntries = formatEntries(array);
+                setAllEntries(formattedEntries);
+    
+                for (const entry of array) {
+                        await loadContributions(entry.id, contract);
+                    }
+                }
+            } catch (error) {
+                console.log('Error in loadEntries:', error);
+            }
+        };
+ 
+    
+    const formatEntries = (entries) => 
+        entries.map(entry => ({
+            id: Number(entry.id),
+            title: entry.title,
+            content: entry.content,
+            owner: entry.owner,
+            timestamp: Number(entry.timestamp),
+            isCollaborative: entry.isCollaborative,
+            isFinalized: entry.isFinalized,
+            location: entry.location
+        }))
+        .sort((a, b) => b.id - a.id);
+    
+
+
+    const loadContributions = async (entryId) => {
         try {
             const contributions = await contract.getEntryContributions(entryId);
             console.log('Raw contributions data:', {
@@ -103,15 +93,9 @@ const CollabComp = () => {
             }));
         } catch (error) {
             console.log('Error in loadContributions:', error);
-            console.log('Error details:', {
-                message: error.message,
-                code: error.code,
-                data: error.data
-            });
         }
     };
-    loadContributions();
-}, [contract]);
+ 
 
 
     const getLocation = () => {
@@ -145,7 +129,7 @@ const CollabComp = () => {
                         setLocation(locationString);
                         resolve(locationString);
                     } catch (error) {
-                        console.error('Error getting location:', error);
+                        console.log('Error getting location:', error);
                         reject(error);
                     }
                 },
@@ -158,38 +142,7 @@ const CollabComp = () => {
         });
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (!contract || !content.trim()) return;
-            if (isCollaborative && !title.trim()) return;
 
-            setLoading(true);
-            
-            // Get location before creating entry
-            const locationString = await getLocation();
-            console.log('Location received:', locationString);
-
-            
-            let tx;
-            if (isCollaborative) {
-                tx = await contract.createCollaborativeEntry(title, content, locationString);
-            } else {
-                tx = await contract.createEntry(content, locationString);
-            }
-
-            await tx.wait();
-            setContent('');
-            setTitle('');
-            setLocation('');
-            await loadEntries(contract);
-        } catch (error) {
-            console.error('Error creating entry:', error);
-            setError(error.message);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const addContribution = async (entryId, contributionContent) => {
         try {
@@ -241,7 +194,7 @@ const CollabComp = () => {
 
             const tx = await contract.finalizeEntry(entryId);
             await tx.wait();
-            await loadEntries(contract);
+            // await loadEntries(contract);
             
             setError('');
         } catch (error) {
@@ -252,82 +205,12 @@ const CollabComp = () => {
         }
     };
 
-    const loadMyContributions = async (contract) => {
-        try {
-            if (!userAddress) return;
-            
-            const allEntries = await contract.getAllEntries();
-            const contributionsMap = {};
-
-            for (const entry of allEntries) {
-                if (entry.isCollaborative) {
-                    const contributions = await contract.getEntryContributions(entry.id);
-                    const myContributionsToEntry = Array.from(contributions).filter(
-                        contribution => contribution.contributor.toLowerCase() === userAddress
-                    );
-
-                    if (myContributionsToEntry.length > 0) {
-                        contributionsMap[entry.id] = {
-                            entryTitle: entry.title,
-                            contributions: myContributionsToEntry.map(contribution => ({
-                                content: contribution.content,
-                                timestamp: Number(contribution.timestamp),
-                                location: contribution.location
-                            }))
-                        };
-                    }
-                }
-            }
-            
-            setMyContributions(contributionsMap);
-        } catch (error) {
-            console.error('Error loading my contributions:', error);
-        }
-    };
-  
-
-    const myEntries = useMemo(() => {
-        if (!userAddress) return [];
-        
-        // Get regular entries owned by the user
-        const ownedEntries = allEntries.filter(entry => 
-            entry.owner.toLowerCase() === userAddress
-        );
-        
-        // Get entries where the user has contributed
-        const contributedEntries = allEntries.filter(entry => {
-            const entryContribs = entryContributions[entry.id] || [];
-            return entryContribs.some(contrib => 
-                contrib.contributor.toLowerCase() === userAddress
-            );
-        });
-        
-        // Combine and remove duplicates
-        return [...new Set([...ownedEntries, ...contributedEntries])];
-    }, [allEntries, entryContributions, userAddress]);
-
-    useEffect(() => {
-        const getUserAddress = async () => {
-            if (window?.ethereum) {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                setUserAddress(accounts[0].toLowerCase());
-            }
-        };
-        getUserAddress();
-    }, []);
-
-
     return (
         <div className="container">
             <div className="entries-section">
                 <h2>Collaborative Threads</h2>
                 
-                {allEntries.filter(entry => entry.isCollaborative).map(entry => {
-                    console.log('Rendering collaborative entry:', {
-                        id: entry.id,
-                        title: entry.title,
-                        isCollaborative: entry.isCollaborative
-                    });
+                {allEntries.map(entry => {
                     return (
                         <div key={entry.id} className="entry-container">
                             <div className="entry">

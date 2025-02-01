@@ -11,8 +11,7 @@ import { useContract } from '@/context/ContractContext';
 const CreateComp = () => {
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [entryCount, setEntryCount] = useState(0);
+    const [loading, setLoading] = useState(false);
     const [isCollaborative, setIsCollaborative] = useState(false);
     const [error, setError] = useState('');
     const [location, setLocation] = useState('');
@@ -21,7 +20,6 @@ const CreateComp = () => {
     const [recognition, setRecognition] = useState(null);
 
     const  contract  = useContract();
-    const [globalEntryCount, setGlobalEntryCount] = useState(0);
   
 
 
@@ -144,7 +142,6 @@ const CreateComp = () => {
             setContent('');
             setTitle('');
             setLocation('');
-            await loadEntries(contract);
         } catch (error) {
             console.error('Error creating entry:', error);
             setError(error.message);

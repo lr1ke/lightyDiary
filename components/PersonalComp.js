@@ -7,73 +7,56 @@ import DiaryAnalysis from './DiaryAnalysis';
 const PersonalComp = () => {
     const [allEntries, setAllEntries] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [entryContributions, setEntryContributions] = useState({});
     const [myContributions, setMyContributions] = useState({});
     const [expandedAddress, setExpandedAddress] = useState(null);
     const [expandedLocation, setExpandedLocation] = useState(null);
     const [userAddress, setUserAddress] = useState('');
 
+
     const contract = useContract();
 
 
     useEffect(() => {
-    const loadEntries = async () => {
+    const loadEntries = async (userAdress) => {
         try {
-            console.log('Loading entries...');
-            
-            const myEntriesResult = await contract.getMyEntries();
-            console.log('My entries loaded:', myEntriesResult);
-            
-            const allEntriesResult = await contract.getAllEntries();
-            console.log('All entries loaded:', allEntriesResult);
-
-            const formatEntries = (entries) => 
-                entries.map(entry => ({
-                    id: Number(entry.id),
-                    title: entry.title,
-                    content: entry.content,
-                    owner: entry.owner,
-                    timestamp: Number(entry.timestamp),
-                    isCollaborative: entry.isCollaborative,
-                    isFinalized: entry.isFinalized,
-                    location: entry.location
-                }))
-                .sort((a, b) => b.id - a.id);
-
-            const formattedEntries = formatEntries(allEntriesResult);
-            console.log('Formatted entries with location:', formattedEntries);
+            const myEntriesResult = await contract.getUserEntries(userAddress);
+            const formattedEntries = formatEntries(myEntriesResult);
             setAllEntries(formattedEntries);
             
             for (const entry of formattedEntries) {
                 if (entry.isCollaborative) {
-                    await loadContributions(entry.id);
+                    await loadMyContributions(entry.id);
                 }
             }
         } catch (error) {
-            console.log('Error in loadEntries:', error);
             throw error;
         }
     };
     loadEntries();
 }, [contract]);
 
+const formatEntries = (entries) => 
+    entries.map(entry => ({
+        id: Number(entry.id),
+        title: entry.title,
+        content: entry.content,
+        owner: entry.owner,
+        timestamp: Number(entry.timestamp),
+        isCollaborative: entry.isCollaborative,
+        isFinalized: entry.isFinalized,
+        location: entry.location
+    }))
+    .sort((a, b) => b.id - a.id);
 
- 
-    useEffect(() => {
-    const loadMyContributions = async (contract) => {
-        try {
-            if (!userAddress) return;
-            
-            const allEntries = await contract.getAllEntries();
+    
+    const loadMyContributions = async () => {
+
             const contributionsMap = {};
+            const contributions = await contract.getEntryContributions(entry.id);
 
-            for (const entry of allEntries) {
-                if (entry.isCollaborative) {
-                    const contributions = await contract.getEntryContributions(entry.id);
-                    const myContributionsToEntry = Array.from(contributions).filter(
+            const myContributionsToEntry = Array.from(contributions).filter(
                         contribution => contribution.contributor.toLowerCase() === userAddress
                     );
-
                     if (myContributionsToEntry.length > 0) {
                         contributionsMap[entry.id] = {
                             entryTitle: entry.title,
@@ -84,38 +67,8 @@ const PersonalComp = () => {
                             }))
                         };
                     }
-                }
-            }
-            
             setMyContributions(contributionsMap);
-        } catch (error) {
-            console.error('Error loading my contributions:', error);
-        }
     };
-    loadMyContributions();
-}, [contract]);
-
-
-
-    const myEntries = useMemo(() => {
-        if (!userAddress) return [];
-        
-        // Get regular entries owned by the user
-        const ownedEntries = allEntries.filter(entry => 
-            entry.owner.toLowerCase() === userAddress
-        );
-        
-        // Get entries where the user has contributed
-        const contributedEntries = allEntries.filter(entry => {
-            const entryContribs = entryContributions[entry.id] || [];
-            return entryContribs.some(contrib => 
-                contrib.contributor.toLowerCase() === userAddress
-            );
-        });
-        
-        // Combine and remove duplicates
-        return [...new Set([...ownedEntries, ...contributedEntries])];
-    }, [allEntries, entryContributions, userAddress]);
 
 
     useEffect(() => {
@@ -131,21 +84,13 @@ const PersonalComp = () => {
 
     return (
         <div className="container">
-            <div className="stats">
-                <p>My Entries: {myEntries.length}</p>
-            </div>
-
-                
-
-            <div className="entries-section">
-                <h2>My Entries</h2>
-                
-                {/* Add DiaryAnalysis at the top of My Entries section */}
-                {myEntries.length > 0 && (
-                    <DiaryAnalysis entries={myEntries} />
+                <div className="entries-section">
+                <h2>My Diary</h2>
+                {allEntries.length > 0 && (
+                    <DiaryAnalysis entries={allEntries} />
                 )}
 
-                {myEntries.map(entry => (
+                {allEntries.map(entry => (
                     <div key={entry.id} className="entry-container">
                         <div className="entry">
                             <div className="entry-header">
@@ -180,68 +125,58 @@ const PersonalComp = () => {
                             </div>
 
                             {/* Show contributions if it's a collaborative entry */}
-                            {entry.isCollaborative && entryContributions[entry.id]?.map((contribution, index) => {
-                                if (contribution.contributor.toLowerCase() === userAddress.toLowerCase()) {
-                                    return (
-                                        <div key={`${entry.id}-${index}`} className="contribution">
-                                            <div className="entry-header">
-                                                <div className="entry-title">
-                                                    <span className="entry-type-tag">💭 My Contribution</span>
-                                                </div>
-                                            </div>
-                                            <p className="entry-content">{contribution.content}</p>
-                                            <div className="entry-metadata">
-                                                <div className="contributor-address">
-                                                    <span className="address-label">Contributor:</span>
-                                                    <span 
-                                                        className="address-value clickable"
-                                                        onClick={() => setExpandedAddress(expandedAddress === contribution.contributor ? null : contribution.contributor)}
-                                                    >
-                                                        {expandedAddress === contribution.contributor 
-                                                            ? contribution.contributor
-                                                            : `${contribution.contributor.slice(0, 5)}...`}
-                                                    </span>
-                                                </div>
-                                                <small>
-                                                    On: {new Date(Number(contribution.timestamp) * 1000).toLocaleString()}
-                                                </small>
-                                                {contribution.location && (
-                                                    <small 
-                                                        className="contribution-location clickable"
-                                                        onClick={() => setExpandedLocation(expandedLocation === `${entry.id}-${index}` ? null : `${entry.id}-${index}`)}
-                                                    >
-                                                        📍 {expandedLocation === `${entry.id}-${index}` ? contribution.location : `${contribution.location.slice(0, 15)}...`}
-                                                    </small>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            })}
+                            {/* {entry.isCollaborative && entryContributions[entry.id]?.map((contribution, index) => {
+                                if (contribution.contributor.toLowerCase() === userAddress.toLowerCase()) { */}
 
-                            {/* Add Finalize button for collaborative entries */}
-                            {entry.isCollaborative && 
-                             !entry.isFinalized && 
-                             entry.owner.toLowerCase() === userAddress.toLowerCase() && (
-                                <div className="entry-actions">
-                                    <button 
-                                        onClick={() => finalizeEntry(entry.id)}
-                                        className="finalize-button"
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Finalizing...' : 'Finalize Thread'}
-                                    </button>
-                                </div>
-                            )}
+                <div className="contributions-container">
+                {Object.values(myContributions).map((entryContributions) => (
+                    entryContributions.contributions.map((contribution, index) => (
+                    <div key={`${entryContributions.entryTitle}-${index}`} className="contribution">
+                        <div className="entry-header">
+                        <div className="entry-title">
+                            <span className="entry-type-tag">💭 My Contribution</span>
                         </div>
+                        </div>
+                        <p className="entry-content">{contribution.content}</p>
+                        <div className="entry-metadata">
+                        <div className="contributor-address">
+                            <span className="address-label">Contributor:</span>
+                            <span className="address-value clickable">
+                            {expandedAddress === contribution.contributor ? contribution.contributor : `${contribution.contributor.slice(0, 5)}...`}
+                            </span>
+                        </div>
+                        <small>Date: {new Date(contribution.timestamp * 1000).toLocaleString()}</small>
+                        {contribution.location && (
+                            <small className="contribution-location clickable">
+                            📍 {contribution.location}
+                            </small>
+                        )}
+                        </div>
+                    </div>
+                    ))
+                ))}
+                </div>
+
+                {/* Add Finalize button for collaborative entries */}
+                {entry.isCollaborative && 
+                    !entry.isFinalized && 
+                    entry.owner.toLowerCase() === userAddress.toLowerCase() && (
+                    <div className="entry-actions">
+                        <button 
+                            onClick={() => finalizeEntry(entry.id)}
+                            className="finalize-button"
+                            disabled={loading}
+                        >
+                            {loading ? 'Finalizing...' : 'Finalize Thread'}
+                        </button>
+                    </div>
+                     )}
+                    </div>
                     </div>
                 ))}
             </div>
-
-
-        </div>
-    );
-};
+            </div>
+            );
+            };
 
 export default PersonalComp;

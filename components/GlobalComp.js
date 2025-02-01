@@ -77,11 +77,7 @@ const GlobalComp = () => {
 
 
     return (
-<>
-
-
-
-
+        <>
         <div className="container">
             <div className="entries-section">
                 <h2>All Entries</h2>
