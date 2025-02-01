@@ -20,10 +20,27 @@ const CollabComp = () => {
     const  contract  = useContract();
 
 
-    
+
+
+    useEffect(() => {
+        const getUserAddress = async () => {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    setUserAddress(accounts[0]);
+                } catch (error) {
+                    console.error('Error getting user address:', error);
+                }
+            }
+        };
+        getUserAddress();
+    }, []);
+
+    useEffect(() => {
         const loadEntries = async () => {
-            if (!contract) {
-                console.log("Contract is not initialized yet.");
+            if (!contract || !userAddress) {
                 return;
             }
             try {
@@ -47,6 +64,9 @@ const CollabComp = () => {
                 console.log('Error in loadEntries:', error);
             }
         };
+        loadEntries();
+    }, [contract, userAddress]);
+
  
     
     const formatEntries = (entries) => 

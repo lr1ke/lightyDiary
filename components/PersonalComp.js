@@ -6,18 +6,38 @@ import DiaryAnalysis from './DiaryAnalysis';
 
 const PersonalComp = () => {
     const [allEntries, setAllEntries] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [myContributions, setMyContributions] = useState({});
     const [expandedAddress, setExpandedAddress] = useState(null);
     const [expandedLocation, setExpandedLocation] = useState(null);
     const [userAddress, setUserAddress] = useState('');
 
 
+
     const contract = useContract();
+
+    useEffect(() => {
+        const getUserAddress = async () => {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ 
+                        method: 'eth_requestAccounts' 
+                    });
+                    setUserAddress(accounts[0]);
+                } catch (error) {
+                    console.error('Error getting user address:', error);
+                }
+            }
+        };
+        getUserAddress();
+    }, []);
 
 
     useEffect(() => {
-    const loadEntries = async (userAdress) => {
+    const loadEntries = async () => {
+        if (!contract || !userAddress) return;
+        console.log("no userAssress or contract");
+
         try {
             const myEntriesResult = await contract.getUserEntries(userAddress);
             const formattedEntries = formatEntries(myEntriesResult);
@@ -29,11 +49,11 @@ const PersonalComp = () => {
                 }
             }
         } catch (error) {
-            throw error;
+            console.error('Error loading entires:', error);
         }
     };
     loadEntries();
-}, [contract]);
+}, [contract, userAddress]);
 
 const formatEntries = (entries) => 
     entries.map(entry => ({
@@ -49,37 +69,76 @@ const formatEntries = (entries) =>
     .sort((a, b) => b.id - a.id);
 
     
-    const loadMyContributions = async () => {
+    // const loadMyContributions = async (entryId) => {
 
-            const contributionsMap = {};
-            const contributions = await contract.getEntryContributions(entry.id);
+    //         const contributionsMap = {};
+    //         const contributions = await contract.getEntryContributions(entryId);
 
+    //         const myContributionsToEntry = Array.from(contributions).filter(
+    //                     contribution => contribution.contributor.toLowerCase() === userAddress
+    //                 );
+    //                 if (myContributionsToEntry.length > 0) {
+    //                     contributionsMap[entry.id] = {
+    //                         entryTitle: entry.title,
+    //                         contributions: myContributionsToEntry.map(contribution => ({
+    //                             content: contribution.content,
+    //                             timestamp: Number(contribution.timestamp),
+    //                             location: contribution.location
+    //                         }))
+    //                     };
+    //                 }
+    //         setMyContributions(contributionsMap);
+    // };
+
+    const loadMyContributions = async (entryId) => {  // Add entryId parameter
+        try {
+            const contributions = await contract.getEntryContributions(entryId);
             const myContributionsToEntry = Array.from(contributions).filter(
-                        contribution => contribution.contributor.toLowerCase() === userAddress
-                    );
-                    if (myContributionsToEntry.length > 0) {
-                        contributionsMap[entry.id] = {
-                            entryTitle: entry.title,
-                            contributions: myContributionsToEntry.map(contribution => ({
-                                content: contribution.content,
-                                timestamp: Number(contribution.timestamp),
-                                location: contribution.location
-                            }))
-                        };
+                contribution => contribution.contributor.toLowerCase() === userAddress.toLowerCase()
+            );
+
+            if (myContributionsToEntry.length > 0) {
+                setMyContributions(prev => ({
+                    ...prev,
+                    [entryId]: {
+                        entryTitle: allEntries.find(e => e.id === entryId)?.title,
+                        contributions: myContributionsToEntry.map(contribution => ({
+                            content: contribution.content,
+                            timestamp: Number(contribution.timestamp),
+                            location: contribution.location,
+                            contributor: contribution.contributor  // Add this line
+                        }))
                     }
-            setMyContributions(contributionsMap);
+                }));
+            }
+        } catch (error) {
+            console.error('Error loading contributions:', error);
+        }
+    };
+
+    const finalizeEntry = async (entryId) => {
+        try {
+            if (!contract || !userAddress) {
+                console.error('Contract not initialized or user not connected');
+                return;
+            }
+
+            setLoading(true);
+            const tx = await contract.finalizeEntry(entryId);
+            await tx.wait();
+            
+            // Refresh entries after finalizing
+            const myEntriesResult = await contract.getUserEntries(userAddress);
+            const formattedEntries = formatEntries(myEntriesResult);
+            setAllEntries(formattedEntries);
+        } catch (error) {
+            console.error('Error finalizing entry:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
 
-    useEffect(() => {
-        const getUserAddress = async () => {
-            if (window?.ethereum) {
-                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                setUserAddress(accounts[0].toLowerCase());
-            }
-        };
-        getUserAddress();
-    }, []);
 
 
     return (
@@ -124,11 +183,11 @@ const formatEntries = (entries) =>
                                 )}
                             </div>
 
-                            {/* Show contributions if it's a collaborative entry */}
-                            {/* {entry.isCollaborative && entryContributions[entry.id]?.map((contribution, index) => {
+                            {/* Show contributions if it's a collaborative entry  */}
+                             {/* {entry.isCollaborative && entryContributions[entry.id]?.map((contribution, index) => {
                                 if (contribution.contributor.toLowerCase() === userAddress.toLowerCase()) { */}
-
-                <div className="contributions-container">
+                
+                {/* <div className="contributions-container">
                 {Object.values(myContributions).map((entryContributions) => (
                     entryContributions.contributions.map((contribution, index) => (
                     <div key={`${entryContributions.entryTitle}-${index}`} className="contribution">
@@ -154,23 +213,55 @@ const formatEntries = (entries) =>
                         </div>
                     </div>
                     ))
-                ))}
-                </div>
+                ))}                     
+                </div> */}
+                                {/* }})} */}
 
-                {/* Add Finalize button for collaborative entries */}
-                {entry.isCollaborative && 
-                    !entry.isFinalized && 
-                    entry.owner.toLowerCase() === userAddress.toLowerCase() && (
-                    <div className="entry-actions">
-                        <button 
-                            onClick={() => finalizeEntry(entry.id)}
-                            className="finalize-button"
-                            disabled={loading}
-                        >
-                            {loading ? 'Finalizing...' : 'Finalize Thread'}
-                        </button>
+                                {entry.isCollaborative && myContributions[entry.id] && (
+                    <div className="contributions-container">
+                        {myContributions[entry.id].contributions.map((contribution, index) => (
+                            <div key={`${entry.id}-${index}`} className="contribution">
+                                <div className="entry-header">
+                                    <div className="entry-title">
+                                        <span className="entry-type-tag">💭 My Contribution</span>
+                                    </div>
+                                </div>
+                                <p className="entry-content">{contribution.content}</p>
+                                <div className="entry-metadata">
+                                    <div className="contributor-address">
+                                        <span className="address-label">Contributor:</span>
+                                        <span className="address-value clickable">
+                                            {expandedAddress === contribution.contributor 
+                                                ? contribution.contributor 
+                                                : `${contribution.contributor.slice(0, 5)}...`}
+                                        </span>
+                                    </div>
+                                    <small>Date: {new Date(contribution.timestamp * 1000).toLocaleString()}</small>
+                                    {contribution.location && (
+                                        <small className="contribution-location clickable">
+                                            📍 {contribution.location}
+                                        </small>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                     )}
+                                )}
+
+
+        {entry.isCollaborative && 
+            !entry.isFinalized && 
+            entry.owner.toLowerCase() === userAddress.toLowerCase() && (
+            <div className="entry-actions">
+                <button 
+                    onClick={() => finalizeEntry(entry.id)}
+                    className="finalize-button"
+                    disabled={loading}
+                >
+                    Finalize Thread
+                </button>
+            </div>
+        )}
                     </div>
                     </div>
                 ))}
