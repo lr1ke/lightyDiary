@@ -321,3 +321,7 @@ Style for all action buttons
     color: #2c5282;  /* Darker blue text */
 }
 
+.highlight-entry {
+    scroll-margin-top: 100px; /* Adds some space at the top when scrolling */
+    transition: background-color 0.5s ease;
+}

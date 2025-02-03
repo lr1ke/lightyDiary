@@ -183,39 +183,7 @@ const formatEntries = (entries) =>
                                 )}
                             </div>
 
-                            {/* Show contributions if it's a collaborative entry  */}
-                             {/* {entry.isCollaborative && entryContributions[entry.id]?.map((contribution, index) => {
-                                if (contribution.contributor.toLowerCase() === userAddress.toLowerCase()) { */}
-                
-                {/* <div className="contributions-container">
-                {Object.values(myContributions).map((entryContributions) => (
-                    entryContributions.contributions.map((contribution, index) => (
-                    <div key={`${entryContributions.entryTitle}-${index}`} className="contribution">
-                        <div className="entry-header">
-                        <div className="entry-title">
-                            <span className="entry-type-tag">💭 My Contribution</span>
-                        </div>
-                        </div>
-                        <p className="entry-content">{contribution.content}</p>
-                        <div className="entry-metadata">
-                        <div className="contributor-address">
-                            <span className="address-label">Contributor:</span>
-                            <span className="address-value clickable">
-                            {expandedAddress === contribution.contributor ? contribution.contributor : `${contribution.contributor.slice(0, 5)}...`}
-                            </span>
-                        </div>
-                        <small>Date: {new Date(contribution.timestamp * 1000).toLocaleString()}</small>
-                        {contribution.location && (
-                            <small className="contribution-location clickable">
-                            📍 {contribution.location}
-                            </small>
-                        )}
-                        </div>
-                    </div>
-                    ))
-                ))}                     
-                </div> */}
-                                {/* }})} */}
+
 
                                 {entry.isCollaborative && myContributions[entry.id] && (
                     <div className="contributions-container">

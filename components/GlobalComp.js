@@ -2,6 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import '../styles/EntryForm.css';
 import GlobalEntriesAnalysis from './GlobalEntriesAnalysis';
 import { useContract } from '@/context/ContractContext';
+import { useSearchParams } from 'next/navigation';
+import '@/styles/EntryForm.css';   // When using absolute imports
+
 
 
 const GlobalComp = () => {
@@ -12,6 +15,8 @@ const GlobalComp = () => {
     const [expandedLocation, setExpandedLocation] = useState(null);
     const [collaborativeEntries, setCollaborativeEntries] = useState([]);
     const [nonCollabEntries, setNonCollabEntries] = useState([]);
+    const searchParams = useSearchParams();
+    const highlightId = searchParams.get('highlight');
 
     const  contract  = useContract();
 
@@ -31,8 +36,6 @@ const GlobalComp = () => {
                 .sort((a, b) => b.id - a.id);
 
 
-
-
     useEffect(() => {
         const loadEntries = async () => {
             if (!contract) {
@@ -41,7 +44,6 @@ const GlobalComp = () => {
             }
 
             try {
-                // Get all entries
                 const allEntries = await contract.getAllEntries();
                 const allEntriesResult = await formatEntries(allEntries);
                 setAllEntries(allEntriesResult);
@@ -74,6 +76,23 @@ const GlobalComp = () => {
         loadEntries();
     }, [contract]);
 
+    useEffect(() => {
+        if (highlightId) {
+            // Add a small delay to ensure the entries are loaded and rendered
+            setTimeout(() => {
+                const element = document.getElementById(`entry-${highlightId}`);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                    element.classList.add('highlight-entry');
+                    // Add a flash effect
+                    element.style.backgroundColor = '#fef9c3';
+                    setTimeout(() => {
+                        element.style.backgroundColor = '';
+                    }, 2000);
+                }
+            }, 500);
+        }
+    }, [highlightId, allEntries]); 
 
 
     return (
@@ -87,7 +106,11 @@ const GlobalComp = () => {
                 )}
 
                 {allEntries.map(entry => (
-                    <div key={entry.id} className="entry-container">
+                    <div 
+                        key={entry.id} 
+                        id={`entry-${entry.id}`}                    
+                        className={`entry-container ${entry.id === Number(highlightId) ? 'bg-yellow-50 transition-colors duration-1000' : ''}`}
+                        >
                         <div className="entry">
                             <div className="entry-header">
                                 <div className="entry-title">

@@ -20,8 +20,6 @@ const CollabComp = () => {
     const  contract  = useContract();
 
 
-
-
     useEffect(() => {
         const getUserAddress = async () => {
             if (window.ethereum) {
@@ -94,7 +92,6 @@ const CollabComp = () => {
                 length: contributions.length
             });
             
-            // Convert the Proxy Result to a regular array and format each contribution
             const formattedContributions = Array.from(contributions).map(contribution => {
                 console.log('Single contribution:', contribution);
                 return {
@@ -115,8 +112,6 @@ const CollabComp = () => {
             console.log('Error in loadContributions:', error);
         }
     };
- 
-
 
     const getLocation = () => {
         if (!navigator.geolocation) {
@@ -137,7 +132,6 @@ const CollabComp = () => {
                         const data = await response.json();
                         console.log('Location data:', data);
                         
-                        // Extract just the city/town name from the address object
                         const locationString = data.address.city || 
                                             data.address.town || 
                                             data.address.village || 
