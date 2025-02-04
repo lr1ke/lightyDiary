@@ -1,6 +1,9 @@
 'use client';
 
-import RevenueChart from '@/app/ui/dashboard/revenue-chart';
+import DDebrief from '@/app/ui/dashboard/ddebrief';
+import WeeklyIdea from '@/app/ui/dashboard/weekly-idea';
+import DaiyIdea from '@/app/ui/dashboard/daily-idea';
+import EveDebrief from '@/app/ui/dashboard/evening-debrief';
 import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
 import RandomPicks from '@/app/ui/dashboard/listRandom';
 import { lusitana } from '@/app/ui/fonts';
@@ -38,7 +41,7 @@ export default function Page() {
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
          <Suspense fallback={<RevenueChartSkeleton />}>
-         <RevenueChart  /> 
+         <DDebrief  /> 
          </Suspense>
          <Suspense fallback={< LatestInvoicesSkeleton />}>
          <LatestInvoices  /> 
@@ -46,7 +49,11 @@ export default function Page() {
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
         <RandomPicks />
+        <WeeklyIdea />
+        <DaiyIdea />
       </div>
+
+
 
 
       

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import '../styles/EntryForm.css';
 import GlobalEntriesAnalysis from './GlobalEntriesAnalysis';
 import { useContract } from '@/context/ContractContext';
 import { useSearchParams } from 'next/navigation';
-import '@/styles/EntryForm.css';   // When using absolute imports
+import '@/styles/EntryForm.css';   
 
 
 
@@ -214,4 +214,10 @@ const GlobalComp = () => {
     );
 };
 
-export default GlobalComp;
+const GlobalCompWrapper = () => (
+    <Suspense fallback={<div>Loading...</div>}>
+        <GlobalComp />
+    </Suspense>
+);
+
+export default GlobalCompWrapper;

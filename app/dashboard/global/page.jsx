@@ -1,13 +1,13 @@
 'use client';
 
-import GlobalComp from '@/components/GlobalComp'
+import GlobalCompWrapper from '@/components/GlobalComp'
 
 export default function Global() {
   'use client';  // Add this if you get hydration errors
   
   return (
     <main>
-      <GlobalComp />
+      <GlobalCompWrapper />
     </main>
   )
 }
