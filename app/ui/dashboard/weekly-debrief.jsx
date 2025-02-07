@@ -1,9 +1,11 @@
+'use client';
+
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
 
 
 
-export default async function WeeklyDebrief() {
+export default function WeeklyDebrief() {
 
    
 

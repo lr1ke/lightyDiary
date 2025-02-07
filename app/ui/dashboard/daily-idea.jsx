@@ -1,9 +1,10 @@
+'use client';
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
 
 
 
-export default async function DaiyIdea() {
+export default function DaiyIdea() {
    
   return (
     <div className="w-full md:col-span-4">

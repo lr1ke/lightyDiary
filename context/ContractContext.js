@@ -8,15 +8,19 @@ const ContractContext = createContext(null);
 
 export const ContractProvider = ({ children }) => {
     const [contract, setContract] = useState(null);
+    const [signer, setSigner] = useState(null);
+
 
 
     useEffect(() => {
         const initContract = async () => {
+            try {
                 console.log('Contract ABI:', DiaryContract.abi);
                 
                 await window.ethereum.request({ method: 'eth_requestAccounts' });
                 const provider = new ethers.BrowserProvider(window.ethereum);
                 const signer = await provider.getSigner();
+                console.log("Signer", signer);
                 const contractAddress = '0x02C4bCE808937Ef2Ace44F89557Bb8cD217D3473';
                 console.log('Contract address:', contractAddress);
                 
@@ -27,6 +31,10 @@ export const ContractProvider = ({ children }) => {
                 );
                 
                 setContract(contractInstance);
+                setSigner(signer);
+            } catch (error) {
+                console.error('Error initializing contract:', error);
+            }
             };
         initContract();
     }, []);

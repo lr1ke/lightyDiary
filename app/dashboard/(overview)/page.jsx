@@ -4,7 +4,7 @@ import DDebrief from '@/app/ui/dashboard/ddebrief';
 import WeeklyIdea from '@/app/ui/dashboard/weekly-idea';
 import DaiyIdea from '@/app/ui/dashboard/daily-idea';
 import EveDebrief from '@/app/ui/dashboard/evening-debrief';
-import LatestInvoices from '@/app/ui/dashboard/latest-invoices';
+import RandomEntry from '@/app/ui/dashboard/randomEntry';
 import RandomPicks from '@/app/ui/dashboard/listRandom';
 import { lusitana } from '@/app/ui/fonts';
 import { fetchCardData } from '@/app/lib/data';
@@ -14,19 +14,20 @@ import { RevenueChartSkeleton, LatestInvoicesSkeleton, CardsSkeleton } from '@/a
 import React from 'react';
 import { useContract } from '@/context/ContractContext';
 
+
 export default function Page() {
   const  contract  = useContract();
-  const [globalEntryCount, setGlobalEntryCount] = useState(0);
+  // const [globalEntryCount, setGlobalEntryCount] = useState(0);
 
-  useEffect(() => {
-    const fetchGlobalEntryCount = async () => {
-      if (contract) {
-        const globalEntryCount = await contract.entryCount();
-        setGlobalEntryCount(Number(globalEntryCount));
-      }
-    };
-    fetchGlobalEntryCount();
-  }, [contract]);
+  // useEffect(() => {
+  //   const fetchGlobalEntryCount = async () => {
+  //     if (contract) {
+  //       const globalEntryCount = await contract.entryCount();
+  //       setGlobalEntryCount(Number(globalEntryCount));
+  //     }
+  //   };
+  //   fetchGlobalEntryCount();
+  // }, [contract]);
 
 
   return (
@@ -41,16 +42,22 @@ export default function Page() {
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
          <Suspense fallback={<RevenueChartSkeleton />}>
-         <DDebrief  /> 
+          <DDebrief  /> 
          </Suspense>
          <Suspense fallback={< LatestInvoicesSkeleton />}>
-         <LatestInvoices  /> 
+          <RandomEntry  /> 
          </Suspense>  
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
-        <RandomPicks />
-        <WeeklyIdea />
-        <DaiyIdea />
+        <Suspense>
+          <RandomPicks />
+        </Suspense>
+        <Suspense>
+          <WeeklyIdea />
+        </Suspense>
+        <Suspense>
+          <DaiyIdea />
+        </Suspense>
       </div>
 
 

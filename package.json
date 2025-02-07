@@ -13,6 +13,7 @@
     "@openzeppelin/contracts": "^5.1.0",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
+    "lucide-react": "^0.474.0",
     "next": "^15.0.2",
     "openai": "^4.71.0",
     "react": "^18.2.0",

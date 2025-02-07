@@ -1,9 +1,9 @@
+'use client';
+
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
 
-
-
-export default async function WeeklyIdea() {
+export default function WeeklyIdea() {
    
   return (
     <div className="w-full md:col-span-4">
