@@ -7,16 +7,18 @@ export default function WeeklyIdea() {
    
   return (
     <div className="w-full md:col-span-4">
+    <div className="rounded-xl p-4">
+    <div className="rounded-xl bg-gray-50 p-4">
 
-
-       <div className="rounded-xl bg-gray-50 p-4">
         {/* <div className="sm:grid-cols-13 mt-0 grid grid-cols-12 items-end gap-2 rounded-md bg-white p-4 md:gap-4"> */}
         <div className="rounded-md bg-white p-4">
+        <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl text-gray-500`}>
+ weekly (de)brief?      </h2>
           <div
             className="mb-6 text-sm text-gray-400 leading-relaxed"
           >
-            Look back <br />
-            The weekly debrief is your chance to
+            
+            The weekly (de)brief is your chance to
             reflect on what worked, cut what didn't 
             and set yourself up for a successful week ahead. <br />
 
@@ -30,6 +32,7 @@ export default function WeeklyIdea() {
           <h3 className="ml-2 text-sm text-gray-500 ">  </h3>
         </div>
       </div> 
+    </div>
     </div>
   );
 }

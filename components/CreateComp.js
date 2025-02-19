@@ -170,16 +170,16 @@ const CreateComp = () => {
 
     const prompts = [
         {
-            title: "Morning Debrief",
+            title: "Morning (De)brief",
             content: "What's top of mind? \nHow am I feeling? \nWhat am I excited about?"
         },
         {
             title: "Evening Reflection",
-            content: "What did I accomplish? \nWhat did I learn? \nOne win, one challenge, one grateful moment."
+            content: "What did I accomplish? \nWhat did I learn? \nOne little win, one challenge, one grateful moment."
         },
         {
             title: "Weekly Insights",
-            content: "Reflect on your week's journey.\nWhat patterns emerged?\nWhat lessons stood out?"
+            content: " What gave me energy?\nWhat drained me?\n What could i have said no to?"
         }
     ];
 

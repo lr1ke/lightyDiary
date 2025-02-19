@@ -61,10 +61,17 @@ export default function RandomPicks() {
   return (
     <>
     <div className="flex w-full flex-col md:col-span-4">
+    <div className="rounded-xl p-4">
+    <div className="rounded-xl  p-4">
+
+    <div className="rounded-md bg-white p-4">
+
     <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Random Picks
-    </h2>
-    <div className="flex grow flex-col justify-between rounded-xl bg-gray-50 p-4">
+        Random Picks from Kiez dairy
+      </h2> 
+    {/* <div className="flex grow flex-col justify-between rounded-xl bg-gray-50 p-4"> */}
+    <div className="flex grow flex-col justify-between rounded-xl p-4">
+
         {randomEntries?.map((entry) => (
             <div key={entry.id} className="bg-white px-6 py-4 rounded-lg mb-4">
                 <p className="text-sm text-gray-500 line-clamp-5">{entry.content}</p>
@@ -80,13 +87,15 @@ export default function RandomPicks() {
         ))}
     </div>
 </div>
+</div>
+</div>
+</div>
 
 
-    <div className="flex w-full flex-col md:col-span-4">
-      <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Random Picks
-      </h2>
-      <div className="flex grow flex-col justify-between rounded-xl bg-gray-50 p-4">
+
+    {/* <div className="flex w-full flex-col md:col-span-4">
+
+      <div className="flex grow flex-col justify-between rounded-xl  p-4">
          <div className="bg-white px-6">
     {randomEntries?.map((entry, i) => {
 
@@ -128,7 +137,7 @@ export default function RandomPicks() {
         </div>
       </div>
     </div>
-    </div>
+    </div> */}
 </>
    );
  }
