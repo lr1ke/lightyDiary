@@ -106,11 +106,15 @@ const GlobalComp = () => {
 
     return (
         <div className="w-full max-w-3xl mx-auto px-2 sm:px-4 py-4 sm:py-6 bg-gray-50">
-            <div className="sticky top-0 z-10 bg-gradient-to-b from-blue-50 to-gray-50 border-b border-blue-100 rounded-t-lg shadow-sm mb-4 sm:mb-6">
+            <div className=" top-0 z-10 bg-gradient-to-b from-blue-50 to-gray-50 border-b border-blue-100 rounded-t-lg shadow-sm mb-4 sm:mb-6">
                 <div className="px-3 sm:px-6 py-3 sm:py-4">
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800">🌍 Global Feed</h2>
                 </div>
             </div>
+            
+            {allEntries.length > 0 && (
+                    <GlobalEntriesAnalysis entries={allEntries} />
+                )}
 
             {error && (
                 <div className="p-3 sm:p-4 mb-4 text-red-700 bg-red-100 rounded-lg border border-red-200 text-sm sm:text-base">

@@ -165,9 +165,11 @@ ${comparisonResults}
     };
 
     return (
+
         <div className="analysis-section">
             <h3>Diary Analysis</h3>
-            <div className="analysis-controls">
+
+             <div className="analysis-controls">
                 <select 
                     value={analysisTimespan} 
                     onChange={(e) => setAnalysisTimespan(e.target.value)}
@@ -203,7 +205,7 @@ ${comparisonResults}
                         Export Analysis
                     </button>
                 )}
-            </div>
+                </div>
 
             {error && <div className="analysis-error">{error}</div>}
 

@@ -143,10 +143,13 @@ const formatEntries = (entries) =>
 
     return (
         <div className="max-w-2xl mx-auto">
-            <div className="sticky top-0 z-10 bg-white border-b border-blue-200">
+            <div className="top-0 z-10 bg-white border-b border-blue-200">
                 <div className="px-4 py-3">
                     <h2 className="text-xl font-bold">My Diary</h2>
                 </div>
+            {allEntries.length > 0 && (
+                    <DiaryAnalysis entries={allEntries} />
+                )}
             </div>
 
             <div className="divide-y divide-blue-200">

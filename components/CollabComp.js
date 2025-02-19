@@ -223,12 +223,15 @@ const CollabComp = () => {
 
     return (
         <div className="w-full max-w-3xl mx-auto px-2 sm:px-4 py-4 sm:py-6 bg-gray-50">
-            <div className="sticky top-0 z-10 bg-gradient-to-b from-purple-50 to-gray-50 border-b border-purple-100 rounded-t-lg shadow-sm mb-4 sm:mb-6">
+            <div className=" top-0 z-10 bg-gradient-to-b from-purple-50 to-gray-50 border-b border-purple-100 rounded-t-lg shadow-sm mb-4 sm:mb-6">
                 <div className="px-3 sm:px-6 py-3 sm:py-4">
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
                         ✨ Collaborative Theme: {theme}
                     </h2>
                 </div>
+                {allEntries.length > 0 && (
+                    <CollaborativeAnalysis entries={allEntries} />
+                )}
             </div>
 
             <div className="space-y-4 sm:space-y-6">
