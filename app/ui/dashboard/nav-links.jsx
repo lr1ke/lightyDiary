@@ -25,7 +25,7 @@ const links = [
     icon: DocumentDuplicateIcon,
   },
   {
-    name: 'Collab',
+    name: 'Collaborative',
     href: '/dashboard/collab',
     icon: UserGroupIcon,
   },

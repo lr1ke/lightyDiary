@@ -3,6 +3,8 @@ import { ArrowPathIcon, SpeakerWaveIcon } from '@heroicons/react/24/outline';
 import { lusitana } from '@/app/ui/fonts';
 import { useEffect, useState } from 'react';
 import { useContract } from '@/context/ContractContext';
+import Link from 'next/link';
+import { BookOpenIcon } from '@heroicons/react/24/outline';
 
 export default function RandomEntry() {
   const [randomEntry, setRandomEntry] = useState(null);
@@ -63,10 +65,16 @@ return (
       </h2>
       <div className="flex grow flex-col justify-between rounded-xl  p-4">
 
-         <div className="bg-white px-6">
-            <p>{ randomEntry.content } </p>
+         <div className="bg-white px-6 py-4 rounded-lg mb-4">
+         <p className=" text-gray-900 line-clamp-5">{randomEntry.content}</p>
+                <Link 
+                    href={`/dashboard/personal?highlight=${randomEntry.id}#entry-${randomEntry.id}`}
+                    className="text-gray-400 hover:text-gray-600"
+                    >
+                     <BookOpenIcon className="h-5 w-5 text-gray-500 " />
 
-        </div> 
+                </Link>
+        </div>
         <div className="flex items-center pb-2 pt-6">
           <SpeakerWaveIcon className="h-5 w-5 text-gray-500" />
           <h3 className="ml-2 text-sm text-gray-500 ">Listen</h3>

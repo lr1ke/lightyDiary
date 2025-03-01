@@ -33,10 +33,10 @@ export default function DaiyIdea() {
           </div>
 
         </div>
-        <div className="flex items-center pb-2 pt-6">
+        {/* <div className="flex items-center pb-2 pt-6">
           <CalendarIcon className="h-5 w-5 text-gray-500" />
           <h3 className="ml-2 text-sm text-gray-500 ">  </h3>
-        </div>
+        </div> */}
       </div> 
     </div>
     </div>

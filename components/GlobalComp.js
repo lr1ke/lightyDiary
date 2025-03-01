@@ -4,11 +4,8 @@ import GlobalEntriesAnalysis from './GlobalEntriesAnalysis';
 import { useContract } from '@/context/ContractContext';
 import { useSearchParams } from 'next/navigation';
 import '@/styles/EntryForm.css';   
-import { BookOpen, Users, Lock, CheckCircle, MapPin, Clock, User, MoreHorizontal, MessageCircle, Repeat2, Heart, Share } from 'lucide-react';
-import Color from 'color';
-
-
-
+import { BookOpen, Users, Lock, CheckCircle, MapPin, Clock, User, MoreHorizontal, MessageCircle, Repeat2, Heart, Share, Megaphone } from 'lucide-react';
+// import Color from 'color';
 
 const GlobalComp = () => {
     const [allEntries, setAllEntries] = useState([]);
@@ -23,14 +20,14 @@ const GlobalComp = () => {
 
     const  contract  = useContract();
 
-    const getRandomColor = () => {
-        const color = Color.rgb(
-            Math.floor(Math.random() * 256),
-            Math.floor(Math.random() * 256),
-            Math.floor(Math.random() * 256)
-        );
-        return color.hex();
-    };
+    // const getRandomColor = () => {
+    //     const color = Color.rgb(
+    //         Math.floor(Math.random() * 256),
+    //         Math.floor(Math.random() * 256),
+    //         Math.floor(Math.random() * 256)
+    //     );
+    //     return color.hex();
+    // };
 
     const formatEntries = (entries) => 
                 entries.map(entry => ({
@@ -108,7 +105,7 @@ const GlobalComp = () => {
         <div className="w-full max-w-3xl mx-auto px-2 sm:px-4 py-4 sm:py-6 bg-gray-50">
             <div className=" top-0 z-10 bg-gradient-to-b from-blue-50 to-gray-50 border-b border-blue-100 rounded-t-lg shadow-sm mb-4 sm:mb-6">
                 <div className="px-3 sm:px-6 py-3 sm:py-4">
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">🌍 Global Feed</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800">🌍 Global  </h2>
                 </div>
             </div>
             
@@ -127,20 +124,21 @@ const GlobalComp = () => {
                     <div 
                         key={entry.id}
                         id={`entry-${entry.id}`}
-                        className={`bg-white rounded-lg border border-gray-200 shadow-sm 
-                                  hover:shadow-md transition-all duration-200 ${
-                            entry.id === Number(highlightId) ? 'bg-yellow-50 border-yellow-200' : ''
-                        }`}
+                        // className={`bg-white rounded-lg border border-gray-200 shadow-sm 
+                        //           hover:shadow-md transition-all duration-200 ${
+                        //     entry.id === Number(highlightId) ? 'bg-yellow-50 border-yellow-200' : ''
+                        // }`}
+                        className="bg-white rounded-lg border border-gray-200 shadow-sm 
+                            hover:shadow-md transition-all duration-200"
                     >
                         <div className="p-3 sm:p-6">
                             <div className="flex space-x-2 sm:space-x-4">
                                 <div className="flex-shrink-0">
-                                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 
+                                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-100 to-gray-100 
                                                     border border-gray-200 flex items-center justify-center shadow-inner">
                                         {/* <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" /> */}
                                     </div>
                                 </div>
-
                                 {/* <div className="flex-shrink-0">
                                     <div 
                                         className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-gray-200 flex items-center justify-center shadow-inner"
@@ -149,16 +147,9 @@ const GlobalComp = () => {
                                         <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
                                     </div>
                                 </div> */}
-                                
                                 <div className="flex-1 min-w-0"> {/* Added min-w-0 to prevent flex item from overflowing */}
                                     <div className="flex items-center space-x-2 flex-wrap">
-                                        <span className="text-xs sm:text-sm text-gray-500">
-                                            {new Date(entry.timestamp * 1000).toLocaleDateString()}
-                                        </span>
-                                        
-                                        
                                     </div>
-
                                     {/* <div className="mt-4 flex flex-wrap gap-2 text-gray-500 text-xs sm:text-sm">
                                         {entry.isCollaborative ? (
                                             <span className="flex items-center space-x-1 px-2 py-1 bg-purple-50 rounded-full">
@@ -193,42 +184,37 @@ const GlobalComp = () => {
                                         {entry.content}
                                     </div>
 
-                                    {/* <div className="mt-4 flex flex-wrap gap-2 text-gray-500 text-xs sm:text-sm">
-                                        {entry.isCollaborative ? (
-                                            <span className="flex items-center space-x-1 px-2 py-1 bg-purple-50 rounded-full">
-                                                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-purple-500" />
-                                                <span className="text-purple-600">
-                                                    {entry.isFinalized ? 'Finalized' : 'Open'}
-                                                </span>
-                                            </span>
-                                        ) : (
-                                            <span className="flex items-center space-x-1 px-2 py-1 bg-green-50 rounded-full">
-                                                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />
-                                                <span className="text-green-600">Personal</span>
-                                            </span>
-                                        )}
-                                        {entry.location && (
-                                            <span className="flex items-center space-x-1 px-2 py-1 bg-gray-100 rounded-full">
-                                                <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                <span className="truncate max-w-[150px]">{entry.location}</span>
-                                            </span>
-                                        )}
-                                    </div> */}
-
                                     <div className="mt-4 flex justify-between items-center border-t border-gray-100 pt-4">
-                                        <button className="flex items-center space-x-1 text-blue-500 hover:text-blue-600">
-                                            <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                                            <span className="text-xs sm:text-sm">{(entryContributions[entry.id] || []).length}</span>
-                                        </button>
-                                        <button className="flex items-center space-x-1 text-green-500 hover:text-green-600">
-                                            <Repeat2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                                        </button>
+                                            <button className="flex items-center space-x-1 text-gray-500 hover:text-gray-600">
+                                             {/* <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                                            <span className="text-xs sm:text-sm">
+                                                 {entry.contributions?.length || 0}
+                                             </span> */}
+                                             <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                                             <span className="text-xs sm:text-sm">
+                                             {new Date(entry.timestamp * 1000).toLocaleTimeString([], { 
+                                                     hour: '2-digit', 
+                                                     minute: '2-digit' 
+                                                 })}
+                                             </span>
+                                         </button>
                                         <button className="flex items-center space-x-1 text-red-400 hover:text-red-500">
-                                            <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+                                             {/* <Heart className="w-4 h-4 sm:w-5 sm:h-5" /> */}
+                                             <span className="text-xs sm:text-sm text-gray-500 hover:text-purple-600">
+                                             {new Date(entry.timestamp * 1000).toLocaleDateString()}
+                                         </span>
+                                         </button>
+                                        <button className="flex items-center space-x-1 text-gray-400 hover:text-blue-500">
+                                             <Megaphone className="w-4 h-4 sm:w-5 sm:h-5" />
                                         </button>
-                                        <button className="flex items-center space-x-1 text-blue-400 hover:text-blue-500">
-                                            <Share className="w-4 h-4 sm:w-5 sm:h-5" />
-                                        </button>
+                                        {entry.location && (
+                                             <button>
+                                             <span className="flex items-center space-x-1 px-2 py-1 bg-blue- text-gray-400 rounded-full">
+                                                 <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                 <span className="truncate max-w-[150px]">{entry.location}</span>
+                                             </span>
+                                             </button>
+                                         )}
                                     </div>
 
                                     {entry.isCollaborative && entryContributions[entry.id] && (
@@ -236,7 +222,7 @@ const GlobalComp = () => {
                                             {entryContributions[entry.id].map((contribution, index) => (
                                                 <div key={index} className="mb-3 sm:mb-4 last:mb-0 bg-gray-50 rounded-lg p-3 sm:p-4">
                                                     <div className="flex items-center space-x-2 text-xs sm:text-sm">
-                                                        <button 
+                                                        {/* <button 
                                                             onClick={() => setExpandedAddress(
                                                                 expandedAddress === contribution.owner ? null : contribution.owner
                                                             )}
@@ -245,8 +231,8 @@ const GlobalComp = () => {
                                                             {expandedAddress === contribution.owner
                                                                 ? contribution.owner
                                                                 : `${contribution.owner?.slice(0, 6)}...${contribution.owner?.slice(-4)}`}
-                                                        </button>
-                                                        <span className="text-gray-400">•</span>
+                                                        </button> */}
+                                                        {/* <span className="text-gray-400">•</span> */}
                                                         <span className="text-gray-500">
                                                             {new Date(contribution.timestamp * 1000).toLocaleDateString()}
                                                         </span>
@@ -280,8 +266,23 @@ const GlobalCompWrapper = () => (
     }>
         <GlobalComp />
     </Suspense>
+    );
+
+export default GlobalCompWrapper;
 
 
+
+
+
+
+
+
+
+
+
+
+
+//  alternative design
 //     return (
 //         <div className="max-w-3xl mx-auto px-4 py-6 bg-gray-50">
 //             <div className="sticky top-0 z-10 bg-gradient-to-b from-blue-50 to-gray-50 border-b border-blue-100 rounded-t-lg shadow-sm mb-6">
@@ -430,7 +431,7 @@ const GlobalCompWrapper = () => (
 //     }>
 //         <GlobalComp />
 //     </Suspense>
-);
+
 
 //     return (
 //         <div className="max-w-2xl mx-auto">
@@ -581,4 +582,3 @@ const GlobalCompWrapper = () => (
 //     </Suspense>
 // );
 
-export default GlobalCompWrapper;

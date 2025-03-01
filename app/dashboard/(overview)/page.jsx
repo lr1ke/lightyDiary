@@ -158,50 +158,53 @@ export default function Page() {
 //   );
 // }
 
-//   return (
-//     <main className="p-4 sm:p-6 bg-gray-50">
-//       {/* Header */}
-//       <div className="mb-6 bg-gradient-to-b from-blue-50 to-gray-50 rounded-lg border-b border-blue-100 p-4">
-//         <h1 className={`${lusitana.className} text-xl sm:text-2xl font-bold text-gray-800`}>
-//           📊 Dashboard
-//         </h1>
-//       </div>
+  return (
+    <main className="p-4 sm:p-6 bg-gray-50">
+      {/* Header */}
+      <div className="mb-6 bg-gradient-to-b from-blue-50 to-gray-50 rounded-lg border-b border-blue-100 p-4">
+        <h1 className={`${lusitana.className} text-xl sm:text-2xl font-bold text-gray-800`}>
+          Overview
+        </h1>
+      </div>
 
-//       {/* Overview Cards */}
-//       <div className="mb-6">
-//         <Suspense fallback={<CardsSkeleton />}>
-//           <CardWrapper />
-//         </Suspense>
-//       </div>
 
-//       {/* Main Content */}
-//       <div className="space-y-6">
-//         {/* First Row */}
-//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-//           <Suspense fallback={<RevenueChartSkeleton />}>
-//             <DDebrief />
-//           </Suspense>
-//           <Suspense fallback={<LatestInvoicesSkeleton />}>
-//             <RandomEntry />
-//           </Suspense>
-//         </div>
 
-//         {/* Second Row */}
-//         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-//           <Suspense>
-//             <RandomPicks />
-//           </Suspense>
-//           <Suspense>
-//             <WeeklyIdea />
-//           </Suspense>
-//           <Suspense>
-//             <DaiyIdea />
-//           </Suspense>
-//         </div>
-//       </div>
-//     </main>
-//   );
-// }
+      {/* Main Content */}
+      <div className="space-y-6">
+        {/* First Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Suspense fallback={<RevenueChartSkeleton />}>
+            <DDebrief />
+          </Suspense>
+          <Suspense fallback={<LatestInvoicesSkeleton />}>
+            <RandomEntry />
+          </Suspense>
+        </div>
+
+        {/* Second Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Suspense>
+            <RandomPicks />
+          </Suspense>
+          <Suspense>
+            <WeeklyIdea />
+          </Suspense>
+          <Suspense>
+            <DaiyIdea />
+          </Suspense>
+        </div>
+
+      {/* Overview Cards */}
+      <div className="mb-6">
+        <Suspense fallback={<CardsSkeleton />}>
+          <CardWrapper />
+        </Suspense>
+      </div>
+
+      </div>
+    </main>
+  );
+}
 
 //   return (
 //     <main className="flex min-h-screen flex-col p-6 ">
@@ -269,41 +272,4 @@ export default function Page() {
 //   );
 // }
 
-  return (
-    <main>
-       <h1 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Dear journaler,
-      </h1> 
 
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
-         <Suspense fallback={<RevenueChartSkeleton />}>
-          <DDebrief  /> 
-         </Suspense>
-         <Suspense fallback={< LatestInvoicesSkeleton />}>
-          <RandomEntry  /> 
-         </Suspense>  
-      </div>
-      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
-        <Suspense>
-          <RandomPicks />
-        </Suspense>
-        <Suspense>
-          <WeeklyIdea />
-        </Suspense>
-        <Suspense>
-          <DaiyIdea />
-        </Suspense>
-      </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Suspense fallback={<CardsSkeleton />}>
-          <CardWrapper />
-        </Suspense>
-      </div>
-
-
-
-
-      
-    </main>
-  );
-}

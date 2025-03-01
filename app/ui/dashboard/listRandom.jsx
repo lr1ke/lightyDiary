@@ -67,7 +67,7 @@ export default function RandomPicks() {
     <div className="rounded-md bg-white p-4">
 
     <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
-        Random Picks from Kiez dairy
+        Random Picks 
       </h2> 
     {/* <div className="flex grow flex-col justify-between rounded-xl bg-gray-50 p-4"> */}
     <div className="flex grow flex-col justify-between rounded-xl p-4">
@@ -90,7 +90,9 @@ export default function RandomPicks() {
 </div>
 </div>
 </div>
-
+</>
+   );
+ }
 
 
     {/* <div className="flex w-full flex-col md:col-span-4">
@@ -138,6 +140,4 @@ export default function RandomPicks() {
       </div>
     </div>
     </div> */}
-</>
-   );
- }
+
