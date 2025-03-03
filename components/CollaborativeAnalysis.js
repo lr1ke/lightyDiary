@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import OpenAI from 'openai';
 import '../styles/CollaborativeAnalysis.css';
 
-// Initialize OpenAI outside the component
 const openai = new OpenAI({
     apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
     dangerouslyAllowBrowser: true
