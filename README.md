@@ -1,6 +1,6 @@
 # Decentralized Diary DApp
 
-A blockchain-based diary application where users can create personal entries and collaborate on shared stories. Live at: https://diary-app-tau.vercel.app/
+A blockchain-based diary application where users can create personal entries and collaborate on shared stories. Live at: (soon)
 
 ## About
 
@@ -17,19 +17,19 @@ This decentralized diary application allows users to record their thoughts and e
 
 ## Prerequisites
 
-- Browser with MetaMask wallet extension (Chrome, Brave,...)
+- Chrome with MetaMask wallet extension 
 - Some Sepolia ETH for transaction fees
 
 ## Getting Started
 
-1. Visit https://diary-app-tau.vercel.app/
+1. Visit (soon)
 2. Connect your MetaMask wallet when prompted
 3. Ensure you're connected to Sepolia testnet
 4. Get some Sepolia ETH from [Sepolia Faucet](https://sepoliafaucet.com/)
 
 ## Running Locally
 
-1. Clone the repository: `git clone [https://github.com/lr1ke/Diary-App/]`
+1. Clone the repository: `git clone [https://github.com/lr1ke/lightyDiary/]`
 2. Install dependencies: `npm install`
 3. Compile the smart contracts: `npx hardhat compile`
 4. Start the development server: `npm run dev`
