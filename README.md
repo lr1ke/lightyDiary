@@ -1,6 +1,7 @@
 # Decentralized Diary DApp
 
-A blockchain-based diary application where users can create personal entries and collaborate on shared stories. Live at: (soon)
+A blockchain-based diary application where users can create personal entries and collaborate on shared stories. Live at: (diary-app-tau.vercel.app
+)
 
 ## About
 
