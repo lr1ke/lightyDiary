@@ -22,7 +22,7 @@ This decentralized diary application allows users to record their thoughts and e
 
 ## Getting Started
 
-1. Visit (soon)
+1. Visit (diary-app-tau.vercel.app)
 2. Connect your MetaMask wallet when prompted
 3. Ensure you're connected to Sepolia testnet
 4. Get some Sepolia ETH from [Sepolia Faucet](https://sepoliafaucet.com/)
