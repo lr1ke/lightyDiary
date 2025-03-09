@@ -181,32 +181,9 @@ const PersonalComp = () => {
                 </div>
             )}
 
-            {/* Language, Translation & Voice Speed Selection */}
-            <div className="flex space-x-4 p-4">
-                <label>
-                    <span className="text-sm font-medium">Translate To:</span>
-                    <select
-                        className="ml-2 border p-1 rounded"
-                        value={translateTo}
-                        onChange={(e) => setTranslateTo(e.target.value)}
-                    >
-                        <option value="">None</option>
-                        <option value="en">English</option>
-                        <option value="de">German</option>
-                        <option value="es">Spanish</option>
-                        <option value="fr">French</option>
-                        <option value="ru">Russian</option>
-                        <option value="zh">Chinese</option>
-                        <option value="hi">Hindi</option>
-                        <option value="ar">Arabic</option>
-                        <option value="tr">Turkish</option>
-                        <option value="it">Italian</option>
-                        <option value="pt">Portuguese</option>
-                    </select>
-                </label>
-            </div>
 
-            {/* List of Diary Entries */}
+
+      {/* List of Diary Entries */}
             <div className="divide-y divide-gray-200">
                 {allEntries.map(entry => (
                     <div key={entry.id} className="p-4 hover:bg-blue-50 transition-colors">
