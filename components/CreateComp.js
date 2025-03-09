@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useContract } from '@/context/ContractContext';
-import { Mic, MicOff, Radio, RadioTower, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import useVoiceRecorder from "@/utils/useVoiceRecorder";
 import { transcribeAudio } from "@/utils/transcribeAudio";
 import { MicrophoneIcon, StopIcon } from "@heroicons/react/24/outline";
-
 
 const CreateComp = () => {
     const [content, setContent] = useState('');
@@ -13,71 +12,17 @@ const CreateComp = () => {
     const [error, setError] = useState('');
     const [location, setLocation] = useState('');
     const [locationError, setLocationError] = useState('');
-    const [isListening, setIsListening] = useState(false);
-    const [recognition, setRecognition] = useState(null);
     const [activeCard, setActiveCard] = useState(0);
     const { isRecording, audioBlob, startRecording, stopRecording } = useVoiceRecorder();
     const [translateToEnglish, setTranslateToEnglish] = useState(false);
-
-
     const contract = useContract();
-
-    // useEffect(() => {
-    //     if ('webkitSpeechRecognition' in window) {
-    //         const recognition = new window.webkitSpeechRecognition();
-    //         recognition.continuous = false;
-    //         recognition.interimResults = false;
-
-    //         recognition.onresult = (event) => {
-    //             const lastResultIndex = event.results.length - 1;
-    //             const transcript = event.results[lastResultIndex][0].transcript;
-    //             console.log('Speech recognition result:', transcript);
-
-    //                 setContent(prevContent => {
-    //                     const newContent = prevContent.trim() + ' ' + transcript.trim();
-    //                     console.log('Updated content:', newContent);
-    //                     return newContent;
-    //                 });
-    //         };
-
-    //         recognition.onerror = (event) => {
-    //             console.error('Speech recognition error:', event.error);
-    //             setIsListening(false);
-    //         };
-
-    //         recognition.onend = () => {
-    //             setIsListening(false);
-    //         };
-
-    //         setRecognition(recognition);
-    //     } else {
-    //         console.error('Speech recognition is not supported in this browser.');
-    //     }
-    // }, [content]);
-
-    // const toggleListening = () => {
-    //     if (!recognition) {
-    //         setError('Speech recognition is not supported in your browser');
-    //         return;
-    //     }
-
-    //     if (isListening) {
-    //         recognition.stop();
-    //     } else {
-    //         recognition.start();
-    //     }
-    //     setIsListening(!isListening);
-    // };
 
     const handleTranscription = async () => {
         if (!audioBlob) return;
-        console.log(`Translate option selected: ${translateToEnglish}`); // ✅ Debugging
-        const text = await transcribeAudio(audioBlob, translateToEnglish); // ✅ Pass correct translation flag
+        console.log(`Translate option selected: ${translateToEnglish}`);
+        const text = await transcribeAudio(audioBlob, translateToEnglish);
         if (text) setContent(text);
-      };
-      
-
-
+    };
 
     const getLocation = () => {
         if (!navigator.geolocation) {
@@ -133,7 +78,6 @@ const CreateComp = () => {
 
             let tx;
             tx = await contract.createEntry(content, locationString);
-            
             await tx.wait();
             setContent('');
             setTitle('');
@@ -147,13 +91,10 @@ const CreateComp = () => {
     };
 
     const PromptCard = ({ title, content, isActive, onNext, onPrev, isFirst, isLast }) => (
-        <div className={`absolute top-0 left-0 w-full transition-opacity duration-300 ${
-            isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'
-        }`}>
+        <div className={`absolute top-0 left-0 w-full transition-opacity duration-300 ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
             <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{content}</p>
-
                 <div className="flex justify-between mt-4">
                     <button
                         onClick={onPrev}
@@ -189,7 +130,7 @@ const CreateComp = () => {
         },
         {
             title: "On the go",
-            content: "What's happenening? What makes me feel aligned or misaligned with my surroundings? \n "
+            content: "What's happening? What makes me feel aligned or misaligned with my surroundings?  "
         },
         {
             title: "Spontaneous revelation",
@@ -199,7 +140,6 @@ const CreateComp = () => {
             title: "A story a day",
             content: "Describe a moment or scene that feels epic. Every day one magical moment you want to remember.  "
         },
-        
     ];
 
     return (
@@ -230,69 +170,48 @@ const CreateComp = () => {
                                             placeholder="Start writing or use voice input... "
                                             className="w-full min-h-[400px] p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all resize-none"
                                         />
-                                        {/* <button
-                                            type="button"
-                                            onClick={toggleListening}
-                                            className={`absolute bottom-4 right-4 p-2 rounded-full transition-all ${
-                                                isListening
-                                                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                            }`}
-                                        >
-                                            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                                        </button> */}
-
-                                              {/* Microphone Button */}
-      <div className="flex items-center mt-4 space-x-4">
-        <button
-          className={`p-3 rounded-full ${isRecording ? "bg-red-500" : "bg-blue-500"} text-white`}
-          onClick={isRecording ? stopRecording : startRecording}
-        >
-          {isRecording ? <StopIcon className="w-6 h-6" /> : <MicrophoneIcon className="w-6 h-6" />}
-        </button>
-
-        {audioBlob && (
-          <button
-            className="px-4 py-2 bg-green-500 text-white rounded"
-            onClick={handleTranscription}
-          >
-            Transcribe
-          </button>
-        )}
-        </div>
-
-              {/* Translation Toggle */}
-      <div className="mt-4 flex items-center space-x-2">
-        <input
-          type="checkbox"
-          id="translate"
-          checked={translateToEnglish}
-          onChange={() => setTranslateToEnglish(!translateToEnglish)}
-        />
-        <label htmlFor="translate" className="text-sm">
-          Translate to English
-        </label>
-      </div>
-
-
-
-
+                                        {/* Microphone Button */}
+                                        <div className="flex items-center mt-4 space-x-4">
+                                            <button
+                                                className={`p-3 rounded-full ${isRecording ? "bg-red-500" : "bg-blue-500"} text-white`}
+                                                onClick={isRecording ? stopRecording : startRecording}
+                                            >
+                                                {isRecording ? <StopIcon className="w-6 h-6" /> : <MicrophoneIcon className="w-6 h-6" />}
+                                            </button>
+                                            {audioBlob && (
+                                                <button
+                                                    className="px-4 py-2 bg-green-500 text-white rounded"
+                                                    onClick={handleTranscription}
+                                                >
+                                                    Transcribe
+                                                </button>
+                                            )}
+                                        </div>
+                                        {/* Translation Toggle */}
+                                        <div className="mt-4 flex items-center space-x-2">
+                                            <input
+                                                type="checkbox"
+                                                id="translate"
+                                                checked={translateToEnglish}
+                                                onChange={() => setTranslateToEnglish(!translateToEnglish)}
+                                            />
+                                            <label htmlFor="translate" className="text-sm">
+                                                Translate to English
+                                            </label>
+                                        </div>
                                     </div>
-
                                     <div className="mt-6 flex justify-end">
                                         <button
                                             type="submit"
                                             disabled={loading || !content.trim()}
                                             className="px-6 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-all"
                                         >
-                                            {/* Create Entry */}
                                             Save Entry
                                         </button>
                                     </div>
                                 </form>
                             </div>
                         </div>
-
                         <div className="lg:col-span-1 order-1 lg:order-2">
                             <div className="relative h-[200px] lg:h-auto">
                                 {prompts.map((prompt, index) => (
