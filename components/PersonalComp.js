@@ -3,11 +3,8 @@ import '../styles/EntryForm.css';
 import { useContract } from '@/context/ContractContext';
 import DiaryAnalysis from './DiaryAnalysis';
 import { BookOpen, Users, Lock, CheckCircle, MapPin, Clock, User, MoreHorizontal, MessageCircle, Repeat2, Heart, Share, Megaphone } from 'lucide-react';
-import { SpeakerWaveIcon } from '@heroicons/react/24/outline';
-import { readEntryContent } from "@/utils/textToSpeech";
-
-
-
+import { SpeakerWaveIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
+import { readEntryContent, handleMouseEnter } from "@/utils/textToSpeech";
 
 const PersonalComp = () => {
     const [allEntries, setAllEntries] = useState([]);
@@ -20,8 +17,8 @@ const PersonalComp = () => {
     const [voiceSpeed, setVoiceSpeed] = useState("default");
     const [language, setLanguage] = useState("en");
     const [translateTo, setTranslateTo] = useState("");
-  
-    
+    const [showTranslationOptions, setShowTranslationOptions] = useState(false);
+
     const contract = useContract();
 
     useEffect(() => {
@@ -40,42 +37,40 @@ const PersonalComp = () => {
         getUserAddress();
     }, []);
 
-
     useEffect(() => {
     const loadEntries = async () => {
         if (!contract || !userAddress) return;
         console.log("no userAssress or contract");
 
-        try {
-            const myEntriesResult = await contract.getUserEntries(userAddress);
-            const formattedEntries = formatEntries(myEntriesResult);
-            setAllEntries(formattedEntries);
-            
-            for (const entry of formattedEntries) {
-                if (entry.isCollaborative) {
-                    await loadMyContributions(entry.id);
+            try {
+                const myEntriesResult = await contract.getUserEntries(userAddress);
+                const formattedEntries = formatEntries(myEntriesResult);
+                setAllEntries(formattedEntries);
+                
+                for (const entry of formattedEntries) {
+                    if (entry.isCollaborative) {
+                        await loadMyContributions(entry.id);
+                    }
                 }
+            } catch (error) {
+                console.error('Error loading entries:', error);
             }
-        } catch (error) {
-            console.error('Error loading entires:', error);
-        }
-    };
-    loadEntries();
-}, [contract, userAddress]);
+        };
+        loadEntries();
+    }, [contract, userAddress]);
 
-const formatEntries = (entries) => 
-    entries.map(entry => ({
-        id: Number(entry.id),
-        title: entry.title,
-        content: entry.content,
-        owner: entry.owner,
-        timestamp: Number(entry.timestamp),
-        isCollaborative: entry.isCollaborative,
-        isFinalized: entry.isFinalized,
-        location: entry.location
-    }))
-    .sort((a, b) => b.id - a.id);
-
+    const formatEntries = (entries) => 
+        entries.map(entry => ({
+            id: Number(entry.id),
+            title: entry.title,
+            content: entry.content,
+            owner: entry.owner,
+            timestamp: Number(entry.timestamp),
+            isCollaborative: entry.isCollaborative,
+            isFinalized: entry.isFinalized,
+            location: entry.location
+        }))
+        .sort((a, b) => b.id - a.id);
 
     const loadMyContributions = async (entryId) => {  
         try {
@@ -125,22 +120,57 @@ const formatEntries = (entries) =>
         }
     };
 
-
     return (
         <div className="max-w-2xl mx-auto">
             <div className="top-0 z-10 bg-white border-b border-gray-200">
-            <div className="px-6 py-4">
-            <h2 className="text-2xl font-bold text-gray-800">Personal</h2>
-                      {/* 🔊 Read All Entries Button */}
-          <button
-            className="flex items-center space-x-2 text-gray-500 hover:text-red-400 py-4"
-            onClick={() => readEntryContent(allEntries.map(entry => entry.content).join(". "))}
-          >
-            <SpeakerWaveIcon className="w-5 h-5 text-blue-300" />
-            <span>Read All</span>
-          </button>
-            </div>
-            {allEntries.length > 0 && (
+                <div className="px-6 py-4">
+                    <h2 className="text-2xl font-bold text-gray-800">Personal</h2>
+                    
+                    <div className="flex space-x-4">
+                        {/* 🌍 Translation Icon (Opens Dropdown) */}
+                        <button onClick={() => setShowTranslationOptions(!showTranslationOptions)}>
+                            <GlobeAltIcon className="w-6 h-6 hover:text-blue-500" />
+                        </button>
+
+                        {/* 🔊 Read All Entries Button */}
+                        <button
+                            className="flex items-center space-x-2 hover:text-red-500"
+                            onClick={() => readEntryContent(allEntries.map(entry => entry.content).join(". "), translateTo)}
+                        >
+                            <SpeakerWaveIcon className="w-5 h-5 text-blue-300" />
+                            <span>Read All</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Translation Selection (Hidden by Default) */}
+                {showTranslationOptions && (
+                    <div className="p-4 bg-gray-100 rounded shadow-md">
+                        <label>
+                            <span className="text-sm font-medium">Translate To:</span>
+                            <select
+                                className="ml-2 border p-1 rounded"
+                                value={translateTo}
+                                onChange={(e) => setTranslateTo(e.target.value)}
+                            >
+                                <option value="">None</option>
+                                <option value="en">English</option>
+                                <option value="de">German</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="ru">Russian</option>
+                                <option value="zh">Chinese</option>
+                                <option value="hi">Hindi</option>
+                                <option value="ar">Arabic</option>
+                                <option value="tr">Turkish</option>
+                                <option value="it">Italian</option>
+                                <option value="pt">Portuguese</option>
+                            </select>
+                        </label>
+                    </div>
+                )}
+
+                {allEntries.length > 0 && (
                     <DiaryAnalysis entries={allEntries} />
                 )}
             </div>
@@ -151,67 +181,49 @@ const formatEntries = (entries) =>
                 </div>
             )}
 
-        {/* Language, Translation & Voice Speed Selection */}
-        <div className="flex space-x-4 p-4">
-          <label>
-            <span className="text-sm font-medium">Voice Speed:</span>
-            <select
-              className="ml-2 border p-1 rounded"
-              value={voiceSpeed}
-              onChange={(e) => setVoiceSpeed(e.target.value)}
-            >
-              <option value="default">Default</option>
-              <option value="slow">Slow</option>
-              <option value="fast">Fast</option>
-            </select>
-          </label>
+            {/* Language, Translation & Voice Speed Selection */}
+            <div className="flex space-x-4 p-4">
+                <label>
+                    <span className="text-sm font-medium">Translate To:</span>
+                    <select
+                        className="ml-2 border p-1 rounded"
+                        value={translateTo}
+                        onChange={(e) => setTranslateTo(e.target.value)}
+                    >
+                        <option value="">None</option>
+                        <option value="en">English</option>
+                        <option value="de">German</option>
+                        <option value="es">Spanish</option>
+                        <option value="fr">French</option>
+                        <option value="ru">Russian</option>
+                        <option value="zh">Chinese</option>
+                        <option value="hi">Hindi</option>
+                        <option value="ar">Arabic</option>
+                        <option value="tr">Turkish</option>
+                        <option value="it">Italian</option>
+                        <option value="pt">Portuguese</option>
+                    </select>
+                </label>
+            </div>
 
-          <label>
-            <span className="text-sm font-medium">Translate To:</span>
-            <select
-              className="ml-2 border p-1 rounded"
-              value={translateTo}
-              onChange={(e) => setTranslateTo(e.target.value)}
-            >
-              <option value="">None</option>
-              <option value="en">English</option>
-              <option value="de">German</option>
-              <option value="es">Spanish</option>
-              <option value="fr">French</option>
-              <option value="ru">Russian</option>
-              <option value="zh">Chinese</option>
-              <option value="hi">Hindi</option>
-              <option value="ar">Arabic</option>
-              <option value="tr">Turkish</option>
-              <option value="it">Italian</option>
-              <option value="pt">Portuguese</option>
-            </select>
-          </label>
-        </div>
-
-      {/* List of Diary Entries */}
+            {/* List of Diary Entries */}
             <div className="divide-y divide-gray-200">
                 {allEntries.map(entry => (
                     <div key={entry.id} className="p-4 hover:bg-blue-50 transition-colors">
                         <div className="flex space-x-3">
-                            <div className="flex-shrink-0">
-                            </div>
+                            <div className="flex-shrink-0"></div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                    {/* <button className="flex items-center space-x-2 hover:text-red-500" onClick={() => readEntryContent(entry.content)}>
-                                        <span className="text-sm text-blue-300">
-                                             <SpeakerWaveIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-                                        </span>
-                                    </button>  */}
-                                                  <button
-                className="flex items-center space-x-2 hover:text-red-500"
-                onClick={() => readEntryContent(entry.content, voiceSpeed, translateTo)}
-              >
-                <SpeakerWaveIcon className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
+                                    <button
+                                        className="flex items-center space-x-2 hover:text-red-500"
+                                        onMouseEnter={() => handleMouseEnter(entry.content, translateTo)}
+                                        onClick={() => readEntryContent(entry.content, translateTo)}
+                                    >
+                                        <SpeakerWaveIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                                    </button>
 
                                     <button>
-                                    <MoreHorizontal className="w-5 h-5 text-blue-300" />
+                                        <MoreHorizontal className="w-5 h-5 text-blue-300" />
                                     </button>
                                 </div>
 
@@ -223,27 +235,28 @@ const formatEntries = (entries) =>
                                     </div>
                                 )}
                                 <p className="mt-2 text-gray-900 whitespace-pre-wrap">{entry.content}</p>
-                                  <div className="mt-3 flex justify-between items-center text-gray-500">
+                                <div className="mt-3 flex justify-between items-center text-gray-500">
                                     <button className="flex items-center space-x-2 hover:text-blue-500">
-                                    <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-                                    <span className="text-xs sm:text-sm">
-                                             {new Date(entry.timestamp * 1000).toLocaleTimeString([], { 
-                                                     hour: '2-digit', 
-                                                     minute: '2-digit' 
-                                                 })}
-                                             </span>                                    </button>
+                                        <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        <span className="text-xs sm:text-sm">
+                                            {new Date(entry.timestamp * 1000).toLocaleTimeString([], { 
+                                                hour: '2-digit', 
+                                                minute: '2-digit' 
+                                            })}
+                                        </span>
+                                    </button>
                                     <button className="flex items-center space-x-2 hover:text-green-500">
-                                    {new Date(entry.timestamp * 1000).toLocaleDateString()}
+                                        {new Date(entry.timestamp * 1000).toLocaleDateString()}
                                     </button>
 
                                     <button className="flex items-center space-x-2 hover:text-blue-500"> 
-                                    {entry.location && (
-                                        <span className="flex items-center space-x-1">
-                                            <MapPin className="w-4 h-4" />
-                                            <span className="text-xs">{entry.location}</span>
-                                        </span>
-                                    )}                                   
-                                      </button>
+                                        {entry.location && (
+                                            <span className="flex items-center space-x-1">
+                                                <MapPin className="w-4 h-4" />
+                                                <span className="text-xs">{entry.location}</span>
+                                            </span>
+                                        )}                                   
+                                    </button>
                                 </div> 
 
                                 {entry.isCollaborative && myContributions[entry.id] && (
