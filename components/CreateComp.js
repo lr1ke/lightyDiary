@@ -3,7 +3,9 @@ import { useContract } from '@/context/ContractContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import useVoiceRecorder from "@/utils/useVoiceRecorder";
 import { transcribeAudio } from "@/utils/transcribeAudio";
-import { MicrophoneIcon, StopIcon } from "@heroicons/react/24/outline";
+import { MicrophoneIcon, StopIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
+import { translateText } from "@/utils/translate";
+import { useEffect } from 'react';
 
 const CreateComp = () => {
     const [content, setContent] = useState('');
@@ -16,12 +18,37 @@ const CreateComp = () => {
     const { isRecording, audioBlob, startRecording, stopRecording } = useVoiceRecorder();
     const [translateToEnglish, setTranslateToEnglish] = useState(false);
     const contract = useContract();
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
 
+      // ✅ Automatically transcribe when recording stops and `audioBlob` is available
+  useEffect(() => {
+    if (audioBlob) {
+      handleTranscription();
+    }
+  }, [audioBlob]); // Runs whenever `audioBlob` updates
+
+    // ✅ Function to handle transcription
     const handleTranscription = async () => {
-        if (!audioBlob) return;
-        console.log(`Translate option selected: ${translateToEnglish}`);
-        const text = await transcribeAudio(audioBlob, translateToEnglish);
+        setIsTranscribing(true);
+        const text = await transcribeAudio(audioBlob);
+        setIsTranscribing(false);
         if (text) setContent(text);
+      };
+
+    // const handleTranscription = async () => {
+    //     if (!audioBlob) return;
+    //     // console.log(`Translate option selected: ${translateToEnglish}`);
+    //     const text = await transcribeAudio(audioBlob); //no translation
+    //     if (text) setContent(text);
+    // };
+
+    const handleTranslation = async () => {
+            if (!content.trim()) return;
+            setIsTranslating(true);
+            const translatedText = await translateText(content);
+            if (translatedText) setContent(translatedText);
+            setIsTranslating(false);
     };
 
     const getLocation = () => {
@@ -170,35 +197,63 @@ const CreateComp = () => {
                                             placeholder="Start writing or use voice input... "
                                             className="w-full min-h-[400px] p-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all resize-none"
                                         />
-                                        {/* Microphone Button */}
-                                        <div className="flex items-center mt-4 space-x-4">
-                                            <button
-                                                className={`p-3 rounded-full ${isRecording ? "bg-red-500" : "bg-blue-500"} text-white`}
-                                                onClick={isRecording ? stopRecording : startRecording}
-                                            >
-                                                {isRecording ? <StopIcon className="w-6 h-6" /> : <MicrophoneIcon className="w-6 h-6" />}
-                                            </button>
-                                            {audioBlob && (
-                                                <button
-                                                    className="px-4 py-2 bg-green-500 text-white rounded"
-                                                    onClick={handleTranscription}
-                                                >
-                                                    Transcribe
-                                                </button>
-                                            )}
-                                        </div>
-                                        {/* Translation Toggle */}
-                                        <div className="mt-4 flex items-center space-x-2">
-                                            <input
-                                                type="checkbox"
-                                                id="translate"
-                                                checked={translateToEnglish}
-                                                onChange={() => setTranslateToEnglish(!translateToEnglish)}
-                                            />
-                                            <label htmlFor="translate" className="text-sm">
-                                                Translate to English
-                                            </label>
-                                        </div>
+
+<div className="flex items-center space-x-4 mt-4">
+  {/* 🎤 Record Button */}
+  {/* <button
+    className={`p-3 rounded-full ${isRecording ? "bg-red-500" : "bg-blue-500"} text-white`}
+    onClick={isRecording ? stopRecording : startRecording}
+  >
+    {isRecording ? <StopIcon className="w-6 h-6" /> : <MicrophoneIcon className="w-6 h-6" />}
+  </button> */}
+
+  {/* ✅ Transcribe Button */}
+  {/* {audioBlob && (
+    <button
+      className="px-4 py-2 bg-green-500 text-white rounded"
+      onClick={handleTranscription}
+    >
+      Transcribe
+    </button>
+  )} */}
+
+{/* 🎤 Record & Transcribe Button in One */}
+      {/* 🎤 Record & Transcribe Button */}
+      <button
+        className={`p-3 rounded-full text-white transition-all ${
+          isRecording ? "bg-red-500" : "bg-blue-500 hover:bg-blue-600"
+        }`}
+        onClick={() => (isRecording ? stopRecording() : startRecording())}
+      >
+        {isRecording ? (
+          <StopIcon className="w-6 h-6" />
+        ) : isTranscribing ? (
+          <div className="animate-spin w-6 h-6 border-4 border-white border-t-transparent rounded-full"></div>
+        ) : (
+          <MicrophoneIcon className="w-6 h-6" />
+        )}
+      </button>
+
+
+  {/* 🌍 Translate Button  */}
+  <button
+    type="button"
+    disabled={!content.trim() || isTranslating}
+    className="p-3 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 transition-all relative group"
+    onClick={handleTranslation}
+  >
+    <GlobeAltIcon className="w-6 h-6" />
+
+    {/* Tooltip - Shows "Translate to English" on hover */}
+    <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-md group-hover:block">
+      {isTranslating ? "Translating..." : "Translate to English"}
+    </span>
+  </button>
+
+</div>
+
+
+                
                                     </div>
                                     <div className="mt-6 flex justify-end">
                                         <button
